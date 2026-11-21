@@ -1,3 +1,7 @@
+[![make.fun · gta6-01](https://make.fun/badge/gta6-01.svg)](https://make.fun/bounty/gta6-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
+[![rank](https://make.fun/badge/gta6-01/gamespan88/palmira-heat/rank.svg)](https://make.fun/bounty/gta6-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
+[![reward](https://make.fun/badge/gta6-01/gamespan88/palmira-heat/reward.svg)](https://make.fun/bounty/gta6-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
+
 # Palmira Heat
 
 An original open-world crime game for the make.fun **gta6-01** ("Make GTA 6") bounty. Everything in Palmira is invented for this entry — the city, characters, vehicles, names, story, art and synthesized sound. No Rockstar Games material is used.
