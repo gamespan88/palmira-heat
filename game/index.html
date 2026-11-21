@@ -28,6 +28,7 @@
   #healthWrap { width:170px; height:13px; background:#351923; border:1px solid #fff3; margin-top:7px; margin-left:auto; }
   #healthBar { height:100%; width:100%; background:linear-gradient(90deg,#ff5964,#ffd166); }
   #minimap { position:absolute; right:16px; bottom:16px; width:196px; height:196px; border-radius:50%; border:3px solid rgba(255,209,102,.9); box-shadow:0 5px 22px rgba(0,0,0,.55); background:#17263a; }
+  #districtBanner { position:absolute; top:16px; left:50%; transform:translateX(-50%); padding:8px 22px; font-size:17px; font-weight:bold; letter-spacing:3px; color:#ffd166; display:none; }
   #prompt { position:absolute; left:50%; bottom:118px; transform:translateX(-50%); padding:9px 15px; font-size:15px; display:none; }
   #subtitle { position:absolute; left:50%; bottom:38px; transform:translateX(-50%); width:min(760px, calc(100vw - 80px)); text-align:center; padding:10px 16px; font-size:16px; line-height:1.4; display:none; }
   #subtitle b { color:#ffd166; }
@@ -59,6 +60,7 @@
       <span><b>Shift</b> — sprint</span><span><b>F</b> — enter / steal / exit car</span>
       <span><b>Click</b> — shoot pistol</span><span><b>R</b> — reload</span>
       <span><b>E</b> — talk / start fare</span><span><b>Esc / P</b> — pause &amp; save</span>
+      <span><b>Gold ring</b> — Marina Loop street race</span><span><b>8 story missions</b> — one long Palmira night</span>
     </div>
     <button id="newGameButton">NEW GAME</button>
     <button id="continueButton" class="secondary">CONTINUE</button>
@@ -70,6 +72,7 @@
   <div id="topLeft" class="panel"><div id="gameTitle">PALMIRA HEAT</div><div id="objective">Explore Palmira</div></div>
   <div id="topRight" class="panel"><div id="wantedStars"></div><div id="cash">$0</div><div id="weaponLine">PISTOL 12 / 12</div><div id="healthWrap"><div id="healthBar"></div></div></div>
   <canvas id="minimap" width="220" height="220"></canvas>
+  <div id="districtBanner" class="panel"></div>
   <div id="prompt" class="panel"></div>
   <div id="subtitle" class="panel"></div>
 </div>

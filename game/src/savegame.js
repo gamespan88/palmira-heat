@@ -6,6 +6,7 @@ export function loadSavedGame() {
     if (!raw) return null;
     const data = JSON.parse(raw);
     if (!data || typeof data.cash !== 'number' || typeof data.missionIndex !== 'number') return null;
+    if (typeof data.bestRaceTime !== 'number' || !(data.bestRaceTime > 0)) data.bestRaceTime = 0;
     return data;
   } catch { return null; }
 }
@@ -16,6 +17,7 @@ export function writeSavedGame(state) {
       missionIndex: state.missionIndex,
       storyComplete: Boolean(state.storyComplete),
       taxiFares: state.taxiFares || 0,
+      bestRaceTime: state.bestRaceTime || 0,
       position: { x: state.player.position.x, z: state.player.position.z },
       savedAt: new Date().toISOString(),
     }));

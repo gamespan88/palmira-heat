@@ -3,9 +3,10 @@
 // its ES modules and one vendored three.js build, no network request), and the program hands it
 // in. It copies game/ and screenshots/ from beside this file to /output and writes
 // /output/dossier.json, the summary the judge reads, with the vendored make.fun library.
-// Palmira Heat is an original open-world crime game: a sun-soaked procedural city, traffic and
-// pedestrians, stealable cars, a five-star wanted system with pursuing police, a four-mission
-// story, pistol combat, taxi fares, a HUD with a minimap, synthesized sound and local saves.
+// Palmira Heat is an original open-world crime game: a sun-soaked procedural city of three
+// districts, traffic and pedestrians, stealable cars, a five-star wanted system with pursuing
+// police, roadblocks and a searchlight helicopter, an eight-mission story, pistol combat,
+// taxi fares, checkpoint street races, a HUD with a minimap, synthesized sound and local saves.
 //
 // Serve it locally with `node serve.ts`, then open http://localhost:8080.
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:

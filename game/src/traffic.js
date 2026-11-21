@@ -1,4 +1,5 @@
 // Traffic flow: lane driving on the road grid, intersection turns, pauses and rough obstacle avoidance.
+import { WORLD } from './config.js';
 import { clamp, distance2D } from './utils.js';
 
 function obstacleAhead(vehicle, vehicles, playerVehicle, pedestrians) {
@@ -28,7 +29,7 @@ export function updateTraffic(vehicles, delta, random, roads, playerVehicle, ped
       const turn = random() > 0.5 ? Math.PI / 2 : -Math.PI / 2;
       vehicle.yaw += turn; vehicle.waitTimer = 0.25;
     }
-    if (Math.abs(vehicle.position.x) > 148 || Math.abs(vehicle.position.z) > 148) vehicle.yaw += Math.PI;
+    if (Math.abs(vehicle.position.x) > WORLD.bound - 4 || Math.abs(vehicle.position.z) > WORLD.bound - 4) vehicle.yaw += Math.PI;
     if (vehicle.health < 42 && Math.random() > 0.72) effects.darkSmoke(vehicle.position, 1);
     vehicle.updateTransform();
   }

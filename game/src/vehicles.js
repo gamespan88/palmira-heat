@@ -1,6 +1,6 @@
 // Vehicle factory and arcade car physics: sedans, taxis, trucks, coupes and police interceptors.
 import * as THREE from 'three';
-import { CAR_TYPES, PALETTE } from './config.js';
+import { CAR_TYPES, LIMITS, PALETTE } from './config.js';
 import { clamp } from './utils.js';
 import { resolveBuildingCollisions } from './city.js';
 
@@ -20,6 +20,19 @@ export function createCarMesh(type, isPolice = false) {
   const paint = new THREE.MeshStandardMaterial({ color: isPolice ? PALETTE.police : type.color, roughness: 0.38, metalness: 0.28 });
   const body = addBox(group, bodyGeometry, paint, 0, 0.62, 0);
   if (type.kind.includes('Truck')) { body.scale.set(1.12, 1.25, 1.28); addBox(group, new THREE.BoxGeometry(2.25, 1.5, 2.7), new THREE.MeshStandardMaterial({ color: 0xf0eadc }), 0, 1.35, -1.25); }
+  else if (type.kind.includes('Pickup')) {
+    addBox(group, cabinGeometry, glassMaterial, 0, 1.18, 0.95);
+    const bedMaterial = new THREE.MeshStandardMaterial({ color: 0x8a4a38, roughness: 0.8 });
+    addBox(group, new THREE.BoxGeometry(2.0, 0.5, 0.18), bedMaterial, 0, 0.95, -2.05);
+    addBox(group, new THREE.BoxGeometry(0.18, 0.5, 2.1), bedMaterial, -0.95, 0.95, -1.05);
+    addBox(group, new THREE.BoxGeometry(0.18, 0.5, 2.1), bedMaterial, 0.95, 0.95, -1.05);
+    addBox(group, new THREE.BoxGeometry(1.5, 0.55, 1.6), new THREE.MeshStandardMaterial({ color: 0xb47a45, roughness: 1 }), 0, 0.95, -1.15);
+  }
+  else if (type.kind.includes('Convertible')) {
+    const openCabin = addBox(group, cabinGeometry, glassMaterial, 0, 0.98, -0.18);
+    openCabin.scale.set(0.96, 0.42, 0.9);
+    addBox(group, new THREE.BoxGeometry(1.7, 0.3, 0.5), new THREE.MeshStandardMaterial({ color: 0x24122e, roughness: 0.9 }), 0, 0.92, -1.35);
+  }
   else {
     const cabin = addBox(group, cabinGeometry, glassMaterial, 0, 1.18, -0.18);
     if (type.kind.includes('Coupe')) cabin.scale.set(0.94, 0.82, 0.82);
@@ -54,9 +67,9 @@ export function makeVehicle(scene, type, position, yaw, mode) {
 export function spawnVehicleFleet(scene, random, roads) {
   const vehicles = [];
   const pickRoad = () => roads[Math.floor(random() * roads.length)];
-  for (let i = 0; i < 20; i += 1) {
+  for (let i = 0; i < LIMITS.trafficCars; i += 1) {
     const type = CAR_TYPES[i % CAR_TYPES.length];
-    const along = -132 + random() * 264;
+    const along = -168 + random() * 336;
     const horizontal = random() > 0.5;
     const direction = random() > 0.5 ? 1 : -1;
     const position = horizontal ? new THREE.Vector3(along, 0, pickRoad() + direction * 3.1) : new THREE.Vector3(pickRoad() + direction * 3.1, 0, along);
@@ -65,9 +78,9 @@ export function spawnVehicleFleet(scene, random, roads) {
     vehicle.routeAxis = horizontal ? 'x' : 'z'; vehicle.routeDirection = direction; vehicle.speed = 7 + random() * 6; vehicle.occupied = true;
     vehicles.push(vehicle);
   }
-  for (let i = 0; i < 14; i += 1) {
+  for (let i = 0; i < LIMITS.parkedCars; i += 1) {
     const type = CAR_TYPES[Math.floor(random() * CAR_TYPES.length)];
-    const road = pickRoad(); const along = -138 + random() * 276;
+    const road = pickRoad(); const along = -172 + random() * 344;
     const side = random() > 0.5 ? 5.4 : -5.4;
     const horizontal = random() > 0.5;
     const position = horizontal ? new THREE.Vector3(along, 0, road + side) : new THREE.Vector3(road + side, 0, along);

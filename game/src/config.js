@@ -2,19 +2,20 @@
 export const GAME_TITLE = 'PALMIRA HEAT';
 export const SAVE_KEY = 'palmira-heat-save-v1';
 export const WORLD = {
-  bound: 154,
-  roadCoordinates: [-120, -72, -24, 24, 72, 120],
+  bound: 176,
+  roadCoordinates: [-144, -96, -48, 0, 48, 96, 144],
   roadWidth: 13,
   blockSize: 48,
-  coastZ: 126,
+  coastZ: 160,
 };
-export const PLAYER_START = { x: -24, z: 96, yaw: Math.PI };
+export const PLAYER_START = { x: -6, z: 100, yaw: Math.PI };
 export const CAST = {
   hero: 'Rico Marín',
   courierBoss: 'Dario Sol',
   fixer: 'Marisol Vega',
   mechanic: 'Tessa Bloom',
   rival: 'Vince Corallo',
+  harborMaster: 'Ivo Marek',
 };
 export const PALETTE = {
   sky: 0xffb36b,
@@ -36,5 +37,7 @@ export const CAR_TYPES = [
   { kind: 'Cargo Mule Truck', color: 0xe8e2d4, speed: 21, acceleration: 10 },
   { kind: 'Vela GT Coupe', color: 0xff4f79, speed: 36, acceleration: 22 },
   { kind: 'Marina Family Wagon', color: 0x67d68a, speed: 24, acceleration: 13 },
+  { kind: 'Brisa Pickup', color: 0xe2725b, speed: 25, acceleration: 13 },
+  { kind: 'Solana Convertible', color: 0x7ee0d2, speed: 33, acceleration: 20 },
 ];
-export const LIMITS = { trafficCars: 20, parkedCars: 14, pedestrians: 38, policeCars: 5 };
+export const LIMITS = { trafficCars: 28, parkedCars: 20, pedestrians: 55, policeCars: 5 };

@@ -4,16 +4,18 @@ import { CAST, LIMITS, PALETTE, PLAYER_START, WORLD } from './config.js';
 import { clamp, createSeededRandom, distance2D } from './utils.js';
 import { createInput } from './input.js';
 import { createAudioEngine } from './audio.js';
-import { buildCity } from './city.js';
+import { buildCity, districtAt } from './city.js';
 import { createEffects } from './effects.js';
 import { spawnVehicleFleet, driveVehiclePhysics } from './vehicles.js';
 import { spawnPedestrians, updatePedestrians, createPersonMesh, knockDownPedestrian } from './pedestrians.js';
 import { createPlayer } from './player.js';
 import { updateTraffic } from './traffic.js';
-import { createPoliceFleet, updatePolice } from './police.js';
+import { createPoliceFleet, createRoadblockSystem, updatePolice } from './police.js';
 import { createWantedSystem } from './wanted.js';
 import { createCombat } from './combat.js';
-import { createMissionSystem } from './missions.js';
+import { createMissionSystem, STORY_MISSIONS } from './missions.js';
+import { createRaceSystem, RACE_START } from './races.js';
+import { createAirUnit } from './airunit.js';
 import { createHud } from './hud.js';
 import { loadSavedGame, writeSavedGame, clearSavedGame } from './savegame.js';
 import { readShotName, stageShotScene } from './shots.js';
@@ -37,11 +39,13 @@ const player = createPlayer(scene, PLAYER_START);
 const vehicles = spawnVehicleFleet(scene, random, WORLD.roadCoordinates);
 const pedestrians = spawnPedestrians(scene, random, WORLD.roadCoordinates, LIMITS.pedestrians);
 const police = createPoliceFleet(scene);
+const roadblocks = createRoadblockSystem(scene);
+const airUnit = createAirUnit(scene);
 const wanted = createWantedSystem();
 
 const game = {
-  scene, camera, player, vehicles, pedestrians, police, wanted, hud, effects, audio,
-  mode: 'menu', cash: 120, shotMode: false, shotCamera: null, elapsed: 0, shake: 0,
+  scene, camera, player, vehicles, pedestrians, police, roadblocks, airUnit, wanted, hud, effects, audio,
+  mode: 'menu', cash: 120, shotMode: false, shotCamera: null, elapsed: 0, shake: 0, district: '',
   cameraYaw: PLAYER_START.yaw, dangerPosition: null, saveData: loadSavedGame(),
   enterVehicle(vehicle, silent = false) {
     if (!vehicle) return;
@@ -65,7 +69,7 @@ const game = {
   },
   spawnShowdown() {
     const foes = [];
-    for (const [x, z] of [[72, 141], [77, 136], [67, 143]]) {
+    for (const [x, z] of [[96, 198], [101, 190], [91, 194]]) {
       const mesh = createPersonMesh(0x8e2434, 0xe0ac69, true); mesh.position.set(x, 0, z); scene.add(mesh);
       const foe = { mesh, position: mesh.position, yaw: Math.PI, speed: 1.2, horizontal: false, road: 0, side: 0, direction: 1, health: 70, state: 'walk', fleeTimer: 0, walkPhase: 0, enemy: true, alive: true };
       pedestrians.push(foe); foes.push(foe);
@@ -73,9 +77,21 @@ const game = {
     return foes;
   },
   addCash(amount) { game.cash += amount; },
-  saveGame() { writeSavedGame({ cash: game.cash, missionIndex: missions.missionIndex + (missions.stepIndex > 0 ? 0 : 0), storyComplete: missions.storyComplete, taxiFares: game.taxiFares, player }); },
+  saveGame() { writeSavedGame({ cash: game.cash, missionIndex: missions.missionIndex + (missions.stepIndex > 0 ? 0 : 0), storyComplete: missions.storyComplete, taxiFares: game.taxiFares, bestRaceTime: races.bestTime, player }); },
   taxiFares: 0,
 };
+const races = createRaceSystem(scene, {
+  playerPosition: () => player.mode === 'car' && player.vehicle ? player.vehicle.position : player.position,
+  playerMode: () => player.mode,
+  addCash: (amount) => game.addCash(amount),
+  showDialogue: (speaker, line) => hud.showDialogue(speaker, line),
+  showMessage: (title, text) => hud.showMessage(title, text),
+  playCompleteSound: () => audio.missionComplete(),
+  playPickupSound: () => audio.pickup(),
+  savedBestTime: () => game.saveData?.bestRaceTime || 0,
+  saveGame: () => game.saveGame(),
+});
+game.races = races;
 const combat = createCombat(audio, effects, wanted, (label) => { wanted.commitCrime(label === 'Rival down' ? 6 : 22, label); });
 const missions = createMissionSystem(scene, {
   playerPosition: () => player.mode === 'car' && player.vehicle ? player.vehicle.position : player.position,
@@ -87,6 +103,8 @@ const missions = createMissionSystem(scene, {
   playCompleteSound: () => audio.missionComplete(),
   setWanted: (stars, label) => wanted.setStars(stars, label),
   spawnShowdown: () => game.spawnShowdown(),
+  beginRace: () => races.startRace(true),
+  raceComplete: () => races.consumeMissionFinish(),
   saveGame: () => game.saveGame(),
 });
 game.missions = missions;
@@ -129,13 +147,13 @@ function endRun(kind) {
 function respawn() {
   document.getElementById('endScreen').style.display = 'none';
   if (player.vehicle) game.exitVehicle();
-  player.reset({ x: 112, z: -108 }, Math.PI); game.mode = 'playing'; game.saveGame();
+  player.reset({ x: 102, z: -102 }, Math.PI); game.mode = 'playing'; game.saveGame();
   hud.showMessage('BACK IN PALMIRA', 'Wanted level cleared. Try to keep the sunshine side up.');
 }
 function togglePause() {
   if (game.mode === 'playing') {
     game.mode = 'paused'; document.exitPointerLock?.();
-    document.getElementById('pauseStats').textContent = `${CAST.hero} — $${game.cash} · Story mission ${Math.min(missions.missionIndex + 1, 4)} of 4 · Taxi fares ${game.taxiFares}`;
+    document.getElementById('pauseStats').textContent = `${CAST.hero} — $${game.cash} · Story mission ${Math.min(missions.missionIndex + 1, STORY_MISSIONS.length)} of ${STORY_MISSIONS.length} · Taxi fares ${game.taxiFares}${races.bestTime ? ` · Marina Loop best ${races.bestTime.toFixed(1)}s` : ''}`;
     document.getElementById('pauseScreen').style.display = 'flex';
   } else if (game.mode === 'paused') {
     game.mode = 'playing'; document.getElementById('pauseScreen').style.display = 'none'; input.lockPointer();
@@ -185,6 +203,16 @@ function checkVehicleCollisions(vehicle, delta) {
     if (distance2D(vehicle.position, pedestrian.position) < 2.1 && Math.abs(vehicle.speed) > 2.5) {
       knockDownPedestrian(pedestrian, scene); wanted.commitCrime(30, 'Pedestrian hit'); vehicle.speed *= 0.45; damagePlayer(2);
       hud.showDialogue('Witness', 'He just ran somebody down! Call Palmira PD!');
+    }
+  }
+  for (const block of roadblocks.blocks) {
+    if (!block.active) continue;
+    for (const obstacle of block.colliders) {
+      if (Math.hypot(vehicle.position.x - obstacle.x, vehicle.position.z - obstacle.z) < 3.5 && Math.abs(vehicle.speed) > 3) {
+        vehicle.health -= Math.abs(vehicle.speed) * 0.7; effects.sparks(vehicle.position, 8); audio.crash(1); game.shake = 0.6;
+        wanted.commitCrime(6, 'Roadblock smashed');
+        vehicle.speed *= -0.18;
+      }
     }
   }
 }
@@ -240,8 +268,11 @@ function animate(now) {
     updatePedestrians(pedestrians, delta, game.dangerPosition, city.colliders);
     if (!game.shotMode) {
       const seenByPolice = updatePolice(police, delta, wanted, player, city.colliders, effects, audio);
-      wanted.update(delta, seenByPolice);
+      roadblocks.update(delta, wanted, player);
+      const seenByAirUnit = airUnit.update(delta, game.elapsed, player.position, wanted.stars);
+      wanted.update(delta, seenByPolice || seenByAirUnit);
       missions.update(delta, game.elapsed);
+      races.update(delta, game.elapsed);
       if (missions.currentStep()?.kind === 'shoot') combat.updateEnemyFire(delta, player, missions.enemies, damagePlayer);
       let nearestPolice = Infinity;
       for (const cruiser of police) if (cruiser.active) nearestPolice = Math.min(nearestPolice, distance2D(player.position, cruiser.position));
@@ -249,13 +280,17 @@ function animate(now) {
       if (wanted.stars > 0 && nearestPolice < 6.6 && playerSpeed < 2.1) wanted.bustTimer += delta; else wanted.bustTimer = Math.max(0, wanted.bustTimer - delta * 1.6);
       if (wanted.bustTimer > 2.4) endRun('busted');
     }
+    if (game.shotMode) airUnit.update(delta, game.elapsed, player.position, wanted.stars);
+    const currentDistrict = districtAt(player.position.x, player.position.z);
+    if (currentDistrict !== game.district) { game.district = currentDistrict; hud.showDistrict(currentDistrict); }
     const promptVehicle = player.mode === 'foot' ? nearestVehicle() : null;
     const promptPedestrian = player.mode === 'foot' ? nearestPedestrian() : null;
-    hud.setPrompt(player.mode === 'car' ? 'F — exit vehicle · Space — brake' : promptVehicle ? `F — ${promptVehicle.mode === 'parked' ? 'steal' : 'take'} ${promptVehicle.type.kind}` : promptPedestrian && !missions.taxi ? 'E — offer a taxi fare' : '');
+    const nearRaceStart = player.mode === 'car' && !races.active && races.finishCooldown <= 0 && distance2D(player.position, RACE_START) < 9;
+    hud.setPrompt(player.mode === 'car' ? (nearRaceStart ? 'Marina Loop — drive through the gold ring to race · F — exit vehicle' : 'F — exit vehicle · Space — brake') : promptVehicle ? `F — ${promptVehicle.mode === 'parked' ? 'steal' : 'take'} ${promptVehicle.type.kind}` : promptPedestrian && !missions.taxi ? 'E — offer a taxi fare' : '');
     hud.update({
-      objective: missions.objectiveText(), wantedText: wanted.starText(), cash: game.cash,
+      objective: races.active ? races.statusText() : missions.objectiveText(), wantedText: wanted.starText(), cash: game.cash,
       player, vehicleName: player.vehicle ? player.vehicle.type.kind.toUpperCase() : '', ammo: combat.ammoInMagazine, reserveAmmo: combat.reserveAmmo,
-      vehicles, police, enemies: missions.enemies, objectiveTarget: missions.taxi?.target || missions.currentStep()?.target,
+      vehicles, police, heli: airUnit, enemies: missions.enemies, objectiveTarget: races.active ? races.currentTarget() : (missions.taxi?.target || missions.currentStep()?.target),
     });
     audio.updateMusic(delta, true);
     game.shake = Math.max(0, game.shake - delta * 1.7);

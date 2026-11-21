@@ -1,5 +1,6 @@
 // Palmira's people: low-poly walkers on sidewalks who stroll, chat, flee danger and can be hired as fares.
 import * as THREE from 'three';
+import { WORLD } from './config.js';
 import { clamp } from './utils.js';
 import { resolveBuildingCollisions } from './city.js';
 
@@ -23,7 +24,7 @@ export function spawnPedestrians(scene, random, roads, count = 38) {
   const pedestrians = [];
   for (let i = 0; i < count; i += 1) {
     const horizontal = random() > 0.5; const road = roads[Math.floor(random() * roads.length)];
-    const side = random() > 0.5 ? 8.6 : -8.6; const along = -140 + random() * 280;
+    const side = random() > 0.5 ? 8.6 : -8.6; const along = -172 + random() * 344;
     const mesh = createPersonMesh(shirtColors[i % shirtColors.length], skinColors[i % skinColors.length]);
     mesh.position.set(horizontal ? along : road + side, 0, horizontal ? road + side : along);
     scene.add(mesh);
@@ -48,9 +49,9 @@ export function updatePedestrians(pedestrians, delta, dangerPosition, colliders)
     } else if (pedestrian.horizontal) { moveX = pedestrian.direction; pedestrian.yaw = pedestrian.direction > 0 ? Math.PI / 2 : -Math.PI / 2; }
     else { moveZ = pedestrian.direction; pedestrian.yaw = pedestrian.direction > 0 ? 0 : Math.PI; }
     pedestrian.position.x += moveX * speed * delta; pedestrian.position.z += moveZ * speed * delta;
-    if (pedestrian.position.x > 148 || pedestrian.position.x < -148) pedestrian.direction *= -1;
-    if (pedestrian.position.z > 148 || pedestrian.position.z < -148) pedestrian.direction *= -1;
-    pedestrian.position.x = clamp(pedestrian.position.x, -150, 150); pedestrian.position.z = clamp(pedestrian.position.z, -150, 176);
+    if (pedestrian.position.x > WORLD.bound - 4 || pedestrian.position.x < -WORLD.bound + 4) pedestrian.direction *= -1;
+    if (pedestrian.position.z > WORLD.coastZ + 36 || pedestrian.position.z < -WORLD.bound + 4) pedestrian.direction *= -1;
+    pedestrian.position.x = clamp(pedestrian.position.x, -WORLD.bound + 2, WORLD.bound - 2); pedestrian.position.z = clamp(pedestrian.position.z, -WORLD.bound + 2, WORLD.coastZ + 44);
     resolveBuildingCollisions(pedestrian.position, 0.55, colliders);
     pedestrian.walkPhase += delta * (pedestrian.state === 'flee' ? 13 : 7);
     pedestrian.mesh.position.copy(pedestrian.position);
