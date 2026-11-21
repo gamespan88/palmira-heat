@@ -1,79 +1,61 @@
-// The screenshot scenes behind ?shot=start|play|end. Each one plays the real rules forward from a
-// fresh world for a fixed number of steps, steered by a simple autopilot (look ahead each way the
-// paddle could move, keep clear of blocks, chase the lowest coin when that is safe), so the frame
-// is what a short game really looks like and the same seed always gives the same frame.
-import { FIELD, PLAYER, STEP } from './config.js';
-import { EVENT_OVER, KIND_BLOCK } from './world.js';
-import { SCREEN_OVER, SCREEN_PLAY, SCREEN_TITLE } from './render.js';
+// Deterministic screenshot scenes (?shot=cover|foot|mission|coast): the game's own code stages
+// real gameplay states — a chase, a busy sidewalk, the pier showdown and a coastal drive.
+export const SHOT_NAMES = ['cover', 'foot', 'mission', 'coast'];
 
-const START_SECONDS = 5;
-const PLAY_SECONDS = 26;
-const END_LIMIT_SECONDS = 600;
-/**
- * How far ahead, in seconds, the autopilot checks each way it could move: the play scene's pilot
- * looks well ahead and keeps all its lives; the end scene's looks only a moment ahead, so it is
- * caught out once the blocks speed up, as a hurried player is.
- */
-const HORIZON_PLAY = 0.7;
-const HORIZON_END = 0.25;
-const SAMPLE = 1 / 30;
-const DIRECTIONS = [0, -1, 1];
-/** Extra room, each side, it keeps between the paddle and a block. */
-const MARGIN = 10;
-
-/** Seconds until moving in `direction` (-1, 0, 1) runs the paddle into a block; Infinity when it never does. */
-function timeToHit(state, direction, horizon) {
-  const player = state.player;
-  for (let t = SAMPLE; t <= horizon; t += SAMPLE) {
-    const x = Math.min(FIELD.width - player.width, Math.max(0, player.x + direction * PLAYER.speed * t));
-    for (let index = 0; index < state.items.length; index += 1) {
-      const item = state.items[index];
-      if (!item.active || item.kind !== KIND_BLOCK) continue;
-      const y = item.y + item.speed * t;
-      if (y + item.height > player.y && y < player.y + player.height && item.x < x + player.width + MARGIN && item.x + item.width > x - MARGIN) return t;
-    }
-  }
-  return Infinity;
+export function readShotName(search = window.location.search) {
+  const name = new URLSearchParams(search).get('shot');
+  return SHOT_NAMES.includes(name) ? name : null;
 }
 
-/** Of the safe ways to move, the one toward the lowest coin (or the centre); else the one that is hit last. */
-function autopilot(state, horizon) {
-  const player = state.player;
-  let coin = null;
-  for (let index = 0; index < state.items.length; index += 1) {
-    const item = state.items[index];
-    if (item.active && item.kind !== KIND_BLOCK && (coin === null || item.y > coin.y)) coin = item;
+export function stageShotScene(name, game) {
+  const { player, wanted } = game;
+  game.shotMode = true;
+  if (name === 'cover') {
+    const car = game.vehicles.find((vehicle) => vehicle.type.kind.includes('Coupe')) || game.vehicles[0];
+    game.enterVehicle(car, true);
+    car.position.set(27.2, 0, 6); car.yaw = 0; car.speed = 13; car.updateTransform();
+    wanted.setStars(4, 'Hot package chase');
+    game.missions.missionIndex = 1; game.missions.stepIndex = 1; game.missions.active = true; game.missions.refreshBeacon();
+    game.police.forEach((cruiser, index) => {
+      if (index > 1) return;
+      cruiser.active = true; cruiser.mesh.visible = true;
+      cruiser.position.set(index === 0 ? 23.4 : 31.6, 0, index === 0 ? -1 : -4.5);
+      cruiser.yaw = 0.1 * (index === 0 ? 1 : -1); cruiser.speed = 12; cruiser.updateTransform();
+    });
+    const trafficAhead = game.vehicles.filter((vehicle) => vehicle.mode === 'traffic');
+    if (trafficAhead[0]) { trafficAhead[0].position.set(20.9, 0, 36); trafficAhead[0].yaw = 0; trafficAhead[0].updateTransform(); }
+    if (trafficAhead[1]) { trafficAhead[1].position.set(27.4, 0, 62); trafficAhead[1].yaw = Math.PI; trafficAhead[1].updateTransform(); }
+    game.hud.showDialogue('Marisol Vega', 'Half the pier can hear those sirens, Rico. Dock first, improvise later.');
+    game.hud.freezeOverlays();
+    return { follow: 'car', height: 6.4, back: 16 };
   }
-  const target = coin === null ? FIELD.width / 2 : coin.x + coin.width / 2;
-  const centre = player.x + player.width / 2;
-  const wanted = target > centre + 8 ? 1 : target < centre - 8 ? -1 : 0;
-  let best = wanted;
-  let bestTime = timeToHit(state, wanted, horizon);
-  for (let index = 0; index < DIRECTIONS.length && bestTime !== Infinity; index += 1) {
-    const time = timeToHit(state, DIRECTIONS[index], horizon);
-    if (time > bestTime) {
-      bestTime = time;
-      best = DIRECTIONS[index];
-    }
+  if (name === 'foot') {
+    player.position.set(-17.5, 0, 38); player.yaw = -0.7; player.mesh.visible = true;
+    game.missions.missionIndex = 0; game.missions.stepIndex = 0; game.missions.active = true; game.missions.refreshBeacon();
+    game.hud.showDialogue('Marisol Vega', 'Rico! Sunshine, espresso, and one tiny favor. Dario needs a driver.');
+    game.hud.freezeOverlays();
+    const nearby = game.pedestrians.filter((pedestrian) => pedestrian.alive);
+    nearby.slice(0, 4).forEach((pedestrian, index) => {
+      pedestrian.position.set(-21 + index * 3.4, 0, 44 - index * 4.5); pedestrian.mesh.position.copy(pedestrian.position);
+    });
+    const passing = game.vehicles.find((vehicle) => vehicle.mode === 'traffic');
+    if (passing) { passing.position.set(-27.2, 0, 58); passing.yaw = Math.PI; passing.updateTransform(); }
+    return { follow: 'foot', height: 3.4, back: 8.4 };
   }
-  return best;
-}
-
-/**
- * Set `world` to the named scene (start, play or end; any other name is start) and return the
- * screen to draw over it and the best score to show.
- */
-export function stageShot(name, world) {
-  world.reset();
-  if (name !== 'play' && name !== 'end') {
-    for (let index = 0; index < START_SECONDS / STEP; index += 1) world.step(STEP, 0, true);
-    return { screen: SCREEN_TITLE, best: 0 };
+  if (name === 'mission') {
+    player.position.set(64, 0, 124); player.yaw = 0.5; player.gun.visible = true; player.mesh.visible = true;
+    wanted.setStars(2, 'Pier showdown');
+    game.missions.missionIndex = 3; game.missions.stepIndex = 1; game.missions.active = true;
+    game.missions.enemies = game.spawnShowdown(); game.missions.refreshBeacon();
+    game.hud.showDialogue('Vince Corallo', 'Marisol sends a courier to collect my pier? Boys — teach him Palmira manners.');
+    game.hud.freezeOverlays();
+    return { follow: 'foot', height: 3.2, back: 7.4 };
   }
-  const limit = name === 'end' ? END_LIMIT_SECONDS : PLAY_SECONDS;
-  const horizon = name === 'end' ? HORIZON_END : HORIZON_PLAY;
-  for (let index = 0; index < limit / STEP; index += 1) {
-    if (world.step(STEP, autopilot(world.state, horizon), false) & EVENT_OVER) break;
-  }
-  const over = world.state.lives === 0;
-  return { screen: over ? SCREEN_OVER : SCREEN_PLAY, best: world.state.score };
+  const taxi = game.vehicles.find((vehicle) => vehicle.type.kind.includes('Taxi')) || game.vehicles[1];
+  game.enterVehicle(taxi, true);
+  taxi.position.set(75, 0, 92); taxi.yaw = 0.12; taxi.speed = 10; taxi.updateTransform();
+  game.missions.missionIndex = 2; game.missions.stepIndex = 1; game.missions.active = true; game.missions.refreshBeacon();
+  game.hud.showDialogue('Tessa Bloom', 'Coast road at golden hour, Rico. Palmira is showing off again.');
+  game.hud.freezeOverlays();
+  return { follow: 'car', height: 5, back: 12.5, side: 2.5 };
 }

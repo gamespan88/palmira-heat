@@ -3,16 +3,81 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Block Dodger</title>
+<title>Palmira Heat — an original open-world crime game</title>
 <style>
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #11141b; }
-  #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-  /* Read aloud, never shown: the status line screen readers announce. */
-  #status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  html, body { margin:0; height:100%; overflow:hidden; background:#1b1020; font-family:Verdana, Geneva, sans-serif; color:#fff8ec; }
+  #scene { position:fixed; inset:0; width:100%; height:100%; display:block; }
+  .panel { background:rgba(20,10,24,.82); border:1px solid rgba(255,196,86,.75); box-shadow:0 4px 24px rgba(0,0,0,.45); border-radius:8px; }
+  #startScreen { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg, rgba(43,16,54,.28), rgba(12,5,18,.78)); z-index:20; }
+  #startCard { width:min(660px, calc(100vw - 48px)); padding:28px 34px; text-align:center; }
+  #startCard h1 { margin:0; font-size:54px; letter-spacing:2px; color:#ffd166; text-shadow:0 3px 0 #c2437a, 0 8px 24px #000; }
+  #startCard h2 { margin:4px 0 12px; font-size:17px; font-weight:normal; color:#9be7ff; }
+  #startCard p { line-height:1.45; font-size:14px; }
+  .controls { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:4px 18px; text-align:left; font-size:13px; margin:16px auto; max-width:540px; }
+  button { cursor:pointer; border:1px solid #ffd166; background:#c2437a; color:white; padding:11px 18px; margin:4px; font-weight:bold; border-radius:6px; font-size:15px; }
+  button.secondary { background:#26324a; }
+  button:hover { filter:brightness(1.15); }
+  #hud { position:fixed; inset:0; pointer-events:none; z-index:10; display:none; }
+  #topLeft { position:absolute; top:14px; left:16px; padding:10px 13px; min-width:205px; }
+  #gameTitle { color:#ffd166; font-weight:bold; letter-spacing:1px; font-size:15px; }
+  #objective { margin-top:5px; font-size:13px; line-height:1.35; max-width:285px; }
+  #topRight { position:absolute; top:14px; right:16px; text-align:right; padding:10px 13px; min-width:150px; }
+  #wantedStars { color:#ffd166; font-size:24px; letter-spacing:2px; text-shadow:0 2px 5px #000; min-height:29px; }
+  #cash { color:#8dff9a; font-size:20px; font-weight:bold; }
+  #weaponLine { font-size:13px; margin-top:3px; }
+  #healthWrap { width:170px; height:13px; background:#351923; border:1px solid #fff3; margin-top:7px; margin-left:auto; }
+  #healthBar { height:100%; width:100%; background:linear-gradient(90deg,#ff5964,#ffd166); }
+  #minimap { position:absolute; right:16px; bottom:16px; width:196px; height:196px; border-radius:50%; border:3px solid rgba(255,209,102,.9); box-shadow:0 5px 22px rgba(0,0,0,.55); background:#17263a; }
+  #prompt { position:absolute; left:50%; bottom:118px; transform:translateX(-50%); padding:9px 15px; font-size:15px; display:none; }
+  #subtitle { position:absolute; left:50%; bottom:38px; transform:translateX(-50%); width:min(760px, calc(100vw - 80px)); text-align:center; padding:10px 16px; font-size:16px; line-height:1.4; display:none; }
+  #subtitle b { color:#ffd166; }
+  #message { position:absolute; left:50%; top:22%; transform:translate(-50%,-50%); padding:18px 28px; text-align:center; display:none; z-index:15; }
+  #message h2 { margin:0 0 6px; color:#ffd166; font-size:30px; letter-spacing:1px; }
+  #message p { margin:0; font-size:15px; }
+  #pauseScreen, #endScreen { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(10,4,14,.62); z-index:18; }
+  .menuCard { padding:26px 34px; text-align:center; min-width:330px; }
+  .menuCard h2 { color:#ffd166; margin-top:0; }
+  #damageVignette { position:fixed; inset:0; pointer-events:none; box-shadow:inset 0 0 90px rgba(255,0,40,0); z-index:9; }
+  #status { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  @media (max-width:760px) { #startCard h1 { font-size:38px; } .controls { grid-template-columns:1fr; } #minimap { width:148px; height:148px; } }
 </style>
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.min.js" } }
+</script>
 </head>
 <body>
-<canvas id="game" aria-label="Block Dodger: move the paddle left and right to dodge falling blocks and catch coins"></canvas>
+<canvas id="scene" aria-label="Palmira Heat 3D game"></canvas>
+<div id="damageVignette"></div>
+
+<section id="startScreen" aria-label="Palmira Heat start screen">
+  <div id="startCard" class="panel">
+    <h1>PALMIRA HEAT</h1>
+    <h2>One courier. One borrowed car. Every cop in Palmira.</h2>
+    <p>Marisol Vega's beach city runs on sunshine, secrets and fast favors. Take the wheel for courier boss Dario Sol, earn your cut, and decide how hot Palmira gets.</p>
+    <div class="controls">
+      <span><b>W A S D</b> — move / drive</span><span><b>Mouse</b> — look &amp; aim</span>
+      <span><b>Shift</b> — sprint</span><span><b>F</b> — enter / steal / exit car</span>
+      <span><b>Click</b> — shoot pistol</span><span><b>R</b> — reload</span>
+      <span><b>E</b> — talk / start fare</span><span><b>Esc / P</b> — pause &amp; save</span>
+    </div>
+    <button id="newGameButton">NEW GAME</button>
+    <button id="continueButton" class="secondary">CONTINUE</button>
+    <p id="saveNote">Progress saves on this device after missions, fares and from the pause menu.</p>
+  </div>
+</section>
+
+<div id="hud" aria-hidden="true">
+  <div id="topLeft" class="panel"><div id="gameTitle">PALMIRA HEAT</div><div id="objective">Explore Palmira</div></div>
+  <div id="topRight" class="panel"><div id="wantedStars"></div><div id="cash">$0</div><div id="weaponLine">PISTOL 12 / 12</div><div id="healthWrap"><div id="healthBar"></div></div></div>
+  <canvas id="minimap" width="220" height="220"></canvas>
+  <div id="prompt" class="panel"></div>
+  <div id="subtitle" class="panel"></div>
+</div>
+
+<div id="message" class="panel"><h2 id="messageTitle">MISSION COMPLETE</h2><p id="messageText"></p></div>
+
+<section id="pauseScreen"><div class="menuCard panel"><h2>PAUSED</h2><p id="pauseStats"></p><button id="resumeButton">RESUME</button><button id="saveButton" class="secondary">SAVE GAME</button><button id="restartButton" class="secondary">RESTART STORY</button></div></section>
+<section id="endScreen"><div class="menuCard panel"><h2 id="endTitle">BUSTED</h2><p id="endText"></p><button id="respawnButton">CONTINUE IN PALMIRA</button></div></section>
 <p id="status" role="status" aria-live="polite"></p>
 <script type="module" src="./src/main.js"></script>
 </body>
