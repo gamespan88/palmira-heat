@@ -19,7 +19,7 @@ export function stageShotScene(name, game) {
     game.police.forEach((cruiser, index) => {
       if (index > 1) return;
       cruiser.active = true; cruiser.mesh.visible = true;
-      cruiser.position.set(index === 0 ? 23.4 : 31.6, 0, index === 0 ? -1 : -4.5);
+      cruiser.position.set(index === 0 ? 24.3 : 30.3, 0, index === 0 ? 1.8 : 0.4);
       cruiser.yaw = 0.1 * (index === 0 ? 1 : -1); cruiser.speed = 12; cruiser.updateTransform();
     });
     const trafficAhead = game.vehicles.filter((vehicle) => vehicle.mode === 'traffic');
@@ -43,13 +43,20 @@ export function stageShotScene(name, game) {
     return { follow: 'foot', height: 3.4, back: 8.4 };
   }
   if (name === 'mission') {
-    player.position.set(64, 0, 124); player.yaw = 0.5; player.gun.visible = true; player.mesh.visible = true;
+    player.position.set(70.8, 0, 133); player.yaw = 0.17; player.gun.visible = true; player.mesh.visible = true;
     wanted.setStars(2, 'Pier showdown');
     game.missions.missionIndex = 3; game.missions.stepIndex = 1; game.missions.active = true;
-    game.missions.enemies = game.spawnShowdown(); game.missions.refreshBeacon();
+    game.missions.enemies = game.spawnShowdown();
+    const foeSpots = [[69.5, 139.5], [75, 139], [72, 142.5]];
+    game.missions.enemies.forEach((foe, index) => {
+      const [foeX, foeZ] = foeSpots[index % foeSpots.length];
+      foe.position.set(foeX, 0, foeZ); foe.mesh.position.set(foeX, 0, foeZ);
+      foe.yaw = Math.PI + (index - 1) * 0.3; foe.speed = 0;
+    });
+    game.missions.refreshBeacon();
     game.hud.showDialogue('Vince Corallo', 'Marisol sends a courier to collect my pier? Boys — teach him Palmira manners.');
     game.hud.freezeOverlays();
-    return { follow: 'foot', height: 3.2, back: 7.4 };
+    return { follow: 'foot', height: 3.1, back: 7.4, side: 1.1 };
   }
   const taxi = game.vehicles.find((vehicle) => vehicle.type.kind.includes('Taxi')) || game.vehicles[1];
   game.enterVehicle(taxi, true);
