@@ -1,9 +1,9 @@
-// Deterministic screenshot scenes (?shot=cover|foot|mission|coast): the game's own code stages
-// real gameplay states — a five-star chase under the helicopter, a Mercado crowd, the ferry
-// finale and a coastal drive across the enlarged city.
+// Deterministic screenshot scenes (?shot=cover|foot|mission|race): the game's own code stages
+// real gameplay states — a five-star chase under the helicopter, a Mercado crowd, the chapter-two
+// convoy finale and a live Marina Loop race moment.
 import { districtAt } from './city.js';
 
-export const SHOT_NAMES = ['cover', 'foot', 'mission', 'coast'];
+export const SHOT_NAMES = ['cover', 'foot', 'mission', 'race'];
 
 export function readShotName(search = window.location.search) {
   const name = new URLSearchParams(search).get('shot');
@@ -39,6 +39,8 @@ export function stageShotScene(name, game) {
     const trafficAhead = game.vehicles.filter((vehicle) => vehicle.mode === 'traffic');
     if (trafficAhead[0]) { trafficAhead[0].position.set(44.9, 0, 6); trafficAhead[0].yaw = 0; trafficAhead[0].updateTransform(); }
     if (trafficAhead[1]) { trafficAhead[1].position.set(51.1, 0, 44); trafficAhead[1].yaw = Math.PI; trafficAhead[1].updateTransform(); }
+    const kerbBike = game.vehicles.find((vehicle) => vehicle.type.bike);
+    if (kerbBike) { kerbBike.position.set(42.8, 0, -8); kerbBike.yaw = 0; kerbBike.updateTransform(); }
     game.hud.showDialogue('Marisol Vega', 'Vince put a price on you, Rico. The last ferry leaves from Neon Pier — MOVE.');
     pinDistrictBanner(game, car.position.x, car.position.z);
     game.hud.freezeOverlays();
@@ -58,6 +60,8 @@ export function stageShotScene(name, game) {
     if (parkedCars[0]) { parkedCars[0].position.set(-101.5, 0, -30); parkedCars[0].yaw = 0; parkedCars[0].updateTransform(); }
     if (parkedCars[1]) { parkedCars[1].position.set(-80, 0, -42.6); parkedCars[1].yaw = Math.PI / 2; parkedCars[1].updateTransform(); }
     if (parkedCars[2]) { parkedCars[2].position.set(-89.5, 0, -14); parkedCars[2].yaw = 0; parkedCars[2].updateTransform(); }
+    const kerbBike = game.vehicles.find((vehicle) => vehicle.type.bike);
+    if (kerbBike) { kerbBike.position.set(-90.8, 0, -26); kerbBike.yaw = 0; kerbBike.updateTransform(); }
     pinDistrictBanner(game, player.position.x, player.position.z);
     game.hud.freezeOverlays();
     return { follow: 'foot', height: 3.4, back: 9.5 };
@@ -66,23 +70,25 @@ export function stageShotScene(name, game) {
     const car = game.vehicles.find((vehicle) => vehicle.type.kind.includes('Convertible')) || game.vehicles[0];
     game.enterVehicle(car, true);
     car.position.set(58, 0, 147.1); car.yaw = Math.PI / 2; car.speed = 14; car.updateTransform();
-    wanted.setStars(4, 'Ferry run');
-    game.missions.missionIndex = 7; game.missions.stepIndex = 1; game.missions.active = true; game.missions.refreshBeacon();
+    wanted.setStars(4, 'Convoy run');
+    game.missions.missionIndex = 9; game.missions.stepIndex = 2; game.missions.active = true; game.missions.refreshBeacon();
     stageCruisers(game, [[76, 147.1, Math.PI / 2], [72, 140.9, Math.PI / 2 - 0.06]]);
     game.airUnit.stageAt(88, 14, 136, -2.2);
-    game.hud.showDialogue('Marisol Vega', 'Run the planks, Rico! Palmira is beautiful from the water — and so is being alive.');
+    game.hud.showDialogue('Marisol Vega', 'Through every roadblock, Rico — the ferry gate is the only door left. Bring it home.');
     pinDistrictBanner(game, car.position.x, car.position.z);
     game.hud.freezeOverlays();
     return { follow: 'car', height: 5, back: 13 };
   }
-  const taxi = game.vehicles.find((vehicle) => vehicle.type.kind.includes('Taxi')) || game.vehicles[1];
-  game.enterVehicle(taxi, true);
-  taxi.position.set(134, 0, 140.9); taxi.yaw = -Math.PI / 2; taxi.speed = 10; taxi.updateTransform();
-  game.missions.missionIndex = 2; game.missions.stepIndex = 1; game.missions.active = true; game.missions.refreshBeacon();
-  const ahead = game.vehicles.find((vehicle) => vehicle.mode === 'traffic' && vehicle !== taxi);
-  if (ahead) { ahead.position.set(98, 0, 147.1); ahead.yaw = -Math.PI / 2; ahead.updateTransform(); }
-  game.hud.showDialogue('Tessa Bloom', 'Coast road at golden hour, Rico. Palmira is showing off again.');
-  pinDistrictBanner(game, taxi.position.x, taxi.position.z);
+  // 'race': a live Marina Loop moment — checkpoint 3 of 8 ahead, timer running, beacon lit.
+  const car = game.vehicles.find((vehicle) => vehicle.type.kind.includes('Coupe')) || game.vehicles[0];
+  game.enterVehicle(car, true);
+  car.position.set(51.1, 0, -56); car.yaw = Math.PI; car.speed = 17; car.updateTransform();
+  game.missions.missionIndex = 6; game.missions.stepIndex = 1; game.missions.active = true; game.missions.refreshBeacon();
+  game.races.stageRace(2, 47.3);
+  const ahead = game.vehicles.find((vehicle) => vehicle.mode === 'traffic' && vehicle !== car);
+  if (ahead) { ahead.position.set(44.9, 0, -80); ahead.yaw = Math.PI; ahead.updateTransform(); }
+  game.hud.showDialogue('Tessa Bloom', 'GO! Chase the cyan, Rico — the loop does not wait.');
+  pinDistrictBanner(game, car.position.x, car.position.z);
   game.hud.freezeOverlays();
-  return { follow: 'car', height: 5.5, back: 13, side: 2.5 };
+  return { follow: 'car', height: 5.5, back: 14 };
 }

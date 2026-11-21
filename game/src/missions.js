@@ -60,6 +60,24 @@ export const STORY_MISSIONS = [
       { kind: 'goto', target: { x: 96, z: 204 }, text: 'Board the ferry at the end of Neon Pier', speaker: CAST.fixer, line: 'Run the planks, Rico! Palmira is beautiful from the water — and so is being alive.' },
     ],
   },
+  // Chapter two: the ferry brought Rico home, and Palmira was not done with him.
+  {
+    title: 'Back on the Sand', reward: 1150,
+    steps: [
+      { kind: 'goto', target: { x: 54, z: 42 }, text: `Meet ${CAST.fixer} outside Café Sol — she kept your cut warm`, speaker: CAST.fixer, line: 'Look who the ferry brought back. Palmira missed you for exactly one tide, Rico — Ivo has a crate that cannot wait for customs, and neither can I.' },
+      { kind: 'goto', target: { x: 104, z: 148 }, text: `Collect Captain ${CAST.harborMaster}'s rush crate at the marina warehouse — the tide window is closing`, speaker: CAST.harborMaster, line: 'Fast hands, Rico. This crate rides the next tide or it rots on my dock — and Marisol does not pay for rotten.' },
+      { kind: 'goto', target: { x: -138, z: 96 }, text: `Rush the crate to ${CAST.mechanic}'s yard before the tide window closes`, speaker: CAST.mechanic, line: 'Whatever is in that crate hums through the cardboard, Rico. Bring it to my yard quick and do not let the PD get curious.', crime: 2 },
+    ],
+  },
+  {
+    title: 'The Long Way Home', reward: 1400,
+    steps: [
+      { kind: 'goto', target: { x: -90, z: -42 }, text: `Collect the convoy case from ${CAST.courierBoss} at Solstice Garage`, speaker: CAST.courierBoss, line: 'One last convoy run, Rico — everything Palmira owes us, in one case. The whole city will try to stop you carrying it home.' },
+      { kind: 'goto', target: { x: -96, z: 0 }, text: 'Run the convoy through the Mercado — roadblocks are up and the helicopter is awake', speaker: CAST.fixer, line: 'They have sealed the old town with roadblocks and put the bird in the sky. Thread it anyway, Rico — you know every lane.', crime: 4 },
+      { kind: 'goto', target: { x: 90, z: 166 }, text: 'Deliver the convoy case at the Neon Pier ferry gate', speaker: CAST.fixer, line: 'Through every roadblock, Rico — the ferry gate is the only door left. Bring it home.' },
+      { kind: 'goto', target: { x: 96, z: 204 }, text: 'End of the line — board the ferry with the case', speaker: CAST.fixer, line: 'That is the whole city in one case, Rico. Whatever Palmira becomes next, it starts with us on this water.' },
+    ],
+  },
 ];
 
 export function createMissionSystem(scene, hooks) {

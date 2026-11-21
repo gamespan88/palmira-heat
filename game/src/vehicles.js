@@ -1,8 +1,9 @@
-// Vehicle factory and arcade car physics: sedans, taxis, trucks, coupes and police interceptors.
+// Vehicle factory and arcade car physics: sedans, taxis, trucks, coupes, police interceptors and the Vela Moto bike.
 import * as THREE from 'three';
-import { CAR_TYPES, LIMITS, PALETTE } from './config.js';
+import { BIKE_TYPE, CAR_TYPES, LIMITS, PALETTE } from './config.js';
 import { clamp } from './utils.js';
 import { resolveBuildingCollisions } from './city.js';
+import { createPersonMesh } from './pedestrians.js';
 
 const bodyGeometry = new THREE.BoxGeometry(2.05, 0.72, 4.35);
 const cabinGeometry = new THREE.BoxGeometry(1.78, 0.62, 2.05);
@@ -54,8 +55,27 @@ export function createCarMesh(type, isPolice = false) {
   return group;
 }
 
+const bikeWheelGeometry = new THREE.CylinderGeometry(0.34, 0.34, 0.11, 12);
+const bikeFrameMaterial = new THREE.MeshStandardMaterial({ color: 0x24122e, roughness: 0.6, metalness: 0.4 });
+export function createBikeMesh(type) {
+  const group = new THREE.Group();
+  const paint = new THREE.MeshStandardMaterial({ color: type.color, roughness: 0.35, metalness: 0.3 });
+  addBox(group, new THREE.BoxGeometry(0.3, 0.26, 1.15), paint, 0, 0.58, 0.12);
+  addBox(group, new THREE.BoxGeometry(0.34, 0.2, 0.72), bikeFrameMaterial, 0, 0.8, -0.42);
+  addBox(group, new THREE.BoxGeometry(0.12, 0.62, 0.14), bikeFrameMaterial, 0, 0.62, 0.86).rotation.x = -0.28;
+  addBox(group, new THREE.BoxGeometry(0.58, 0.07, 0.09), bikeFrameMaterial, 0, 0.98, 0.8);
+  addBox(group, new THREE.BoxGeometry(0.3, 0.14, 0.06), lightMaterial, 0, 0.72, 0.97);
+  addBox(group, new THREE.BoxGeometry(0.26, 0.1, 0.05), tailMaterial, 0, 0.78, -0.82);
+  for (const z of [0.82, -0.82]) {
+    const wheel = new THREE.Mesh(bikeWheelGeometry, wheelMaterial); wheel.rotation.z = Math.PI / 2; wheel.position.set(0, 0.34, z); wheel.castShadow = true; group.add(wheel);
+  }
+  const rider = createPersonMesh(0xff8c42, 0xe0ac69);
+  rider.name = 'rider'; rider.position.set(0, 0.44, -0.18); rider.visible = false; group.add(rider);
+  return group;
+}
+
 export function makeVehicle(scene, type, position, yaw, mode) {
-  const mesh = createCarMesh(type, mode === 'police');
+  const mesh = type.bike ? createBikeMesh(type) : createCarMesh(type, mode === 'police');
   mesh.position.copy(position); mesh.rotation.y = yaw; scene.add(mesh);
   return {
     type, mesh, mode, position: mesh.position, yaw, speed: 0, steering: 0,
@@ -86,6 +106,9 @@ export function spawnVehicleFleet(scene, random, roads) {
     const position = horizontal ? new THREE.Vector3(along, 0, road + side) : new THREE.Vector3(road + side, 0, along);
     vehicles.push(makeVehicle(scene, type, position, horizontal ? Math.PI / 2 : 0, 'parked'));
   }
+  // Vela Moto bikes wait at the kerb near the places Rico works: Mercado, the race start, the marina, Downtown.
+  const bikeSpots = [[-101.4, -36, 0], [58, 101.4, Math.PI / 2], [101.4, 140, 0], [5.4, 20, 0], [-149.4, -20, 0]];
+  for (const [x, z, yaw] of bikeSpots) vehicles.push(makeVehicle(scene, BIKE_TYPE, new THREE.Vector3(x, 0, z), yaw, 'parked'));
   return vehicles;
 }
 export function driveVehiclePhysics(vehicle, throttle, steeringInput, brake, delta, colliders) {
@@ -97,11 +120,12 @@ export function driveVehiclePhysics(vehicle, throttle, steeringInput, brake, del
   vehicle.speed = clamp(vehicle.speed, -maxReverse, maxForward);
   vehicle.steering = clamp(steeringInput, -1, 1);
   const speedRatio = vehicle.speed / maxForward;
-  vehicle.yaw += vehicle.steering * delta * 1.55 * Math.sign(vehicle.speed || 1) * Math.min(1, Math.abs(speedRatio) + 0.22);
+  const turnRate = vehicle.type.bike ? 2.15 : 1.55;
+  vehicle.yaw += vehicle.steering * delta * turnRate * Math.sign(vehicle.speed || 1) * Math.min(1, Math.abs(speedRatio) + 0.22);
   const beforeX = vehicle.position.x; const beforeZ = vehicle.position.z;
   vehicle.position.x += Math.sin(vehicle.yaw) * vehicle.speed * delta;
   vehicle.position.z += Math.cos(vehicle.yaw) * vehicle.speed * delta;
-  resolveBuildingCollisions(vehicle.position, 2.35, colliders);
+  resolveBuildingCollisions(vehicle.position, vehicle.type.bike ? 1.15 : 2.35, colliders);
   const impact = Math.hypot(vehicle.position.x - beforeX, vehicle.position.z - beforeZ) < Math.abs(vehicle.speed * delta) * 0.42 && Math.abs(vehicle.speed) > 7;
   if (impact) { vehicle.health = Math.max(0, vehicle.health - Math.abs(vehicle.speed) * 0.65); vehicle.speed *= -0.22; }
   vehicle.updateTransform();

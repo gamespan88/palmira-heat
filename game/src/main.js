@@ -58,11 +58,13 @@ const game = {
       hud.showDialogue('Driver', 'Hey! That is my car! Somebody call Palmira PD!');
     } else if (vehicle.mode === 'parked' && !silent) wanted.commitCrime(9, 'Parked car stolen');
     vehicle.mode = 'player'; vehicle.driver = 'player'; vehicle.occupied = true;
+    const rider = vehicle.mesh.getObjectByName('rider'); if (rider) rider.visible = true;
     player.mode = 'car'; player.vehicle = vehicle; player.mesh.visible = false;
     if (!silent) audio.click();
   },
   exitVehicle() {
     const vehicle = player.vehicle; if (!vehicle) return;
+    const rider = vehicle.mesh.getObjectByName('rider'); if (rider) rider.visible = false;
     vehicle.mode = 'parked'; vehicle.driver = null; vehicle.speed = 0;
     player.mode = 'foot'; player.vehicle = null; player.mesh.visible = true;
     player.position.set(vehicle.position.x + 2.4, 0, vehicle.position.z + 0.5);

@@ -40,4 +40,6 @@ export const CAR_TYPES = [
   { kind: 'Brisa Pickup', color: 0xe2725b, speed: 25, acceleration: 13 },
   { kind: 'Solana Convertible', color: 0x7ee0d2, speed: 33, acceleration: 20 },
 ];
+// The motorbike is a separate type on purpose: it joins the parked fleet only, never the traffic mix.
+export const BIKE_TYPE = { kind: 'Vela Moto', color: 0xff7847, speed: 34, acceleration: 24, bike: true };
 export const LIMITS = { trafficCars: 28, parkedCars: 20, pedestrians: 55, policeCars: 5 };

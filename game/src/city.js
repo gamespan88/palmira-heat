@@ -37,8 +37,8 @@ export function buildCity(scene) {
   const city = new THREE.Group(); scene.add(city);
   scene.fog = new THREE.Fog(PALETTE.fog, 110, 380);
   const hemi = new THREE.HemisphereLight(0xffe0b3, 0x51365e, 1.55); scene.add(hemi);
-  const sun = new THREE.DirectionalLight(0xffc37a, 2.4);
-  sun.position.set(-90, 120, -70); sun.castShadow = true;
+  const sun = new THREE.DirectionalLight(0xffb877, 2.4);
+  sun.position.set(-150, 80, -64); sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.camera.left = -205; sun.shadow.camera.right = 205; sun.shadow.camera.top = 205; sun.shadow.camera.bottom = -205;
   sun.shadow.camera.far = 460; sun.shadow.bias = -0.0004; scene.add(sun);
@@ -125,14 +125,17 @@ export function buildCity(scene) {
   const lampHeads = new THREE.SphereGeometry(0.42, 8, 6);
   const lamps = new THREE.InstancedMesh(lampGeometry, new THREE.MeshStandardMaterial({ color: 0x39404f }), 130);
   const heads = new THREE.InstancedMesh(lampHeads, new THREE.MeshBasicMaterial({ color: 0xffe6a3 }), 130);
+  // A soft additive halo around every lamp head sells the golden-hour glow for the price of one instanced mesh.
+  const glows = new THREE.InstancedMesh(new THREE.SphereGeometry(1.05, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffbe78, transparent: true, opacity: 0.15, depthWrite: false }), 130);
   let lampIndex = 0;
   for (const road of WORLD.roadCoordinates) for (let p = -176; p <= 176; p += 44) {
     if (lampIndex >= 128) break;
     matrix.compose(new THREE.Vector3(road + 7.4, 2.8, p), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)); lamps.setMatrixAt(lampIndex, matrix);
     matrix.compose(new THREE.Vector3(road + 7.4, 5.8, p), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)); heads.setMatrixAt(lampIndex, matrix);
+    glows.setMatrixAt(lampIndex, matrix);
     lampIndex += 1;
   }
-  lamps.count = lampIndex; heads.count = lampIndex; city.add(lamps, heads);
+  lamps.count = lampIndex; heads.count = lampIndex; glows.count = lampIndex; city.add(lamps, heads, glows);
 
   const sand = new THREE.Mesh(new THREE.PlaneGeometry(470, 52), new THREE.MeshStandardMaterial({ color: PALETTE.sand, roughness: 1 }));
   sand.rotation.x = -Math.PI / 2; sand.position.set(0, 0.04, WORLD.coastZ + 22); sand.receiveShadow = true; city.add(sand);

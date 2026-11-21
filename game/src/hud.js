@@ -28,6 +28,12 @@ export function createHud() {
     }
     pen.strokeStyle = '#ffd166'; pen.lineWidth = 1.2;
     for (const coordinate of WORLD.roadCoordinates) { const [x] = worldToMap(coordinate, 0); pen.beginPath(); pen.moveTo(x, 0); pen.lineTo(x, height); pen.stroke(); }
+    pen.font = 'bold 8px Verdana'; pen.textAlign = 'center'; pen.lineWidth = 2.6; pen.strokeStyle = 'rgba(10,15,24,0.88)'; pen.fillStyle = 'rgba(255,240,214,0.94)';
+    const districtLabel = (text, x, z) => { const [mx, my] = worldToMap(x, z); pen.strokeText(text, mx, my); pen.fillText(text, mx, my); };
+    districtLabel('DOWNTOWN', 0, -8);
+    districtLabel('MERCADO', -117, -14);
+    districtLabel('MARINA', 0, 114);
+    pen.textAlign = 'left';
     const blip = (position, color, radius = 3.4) => { const [x, y] = worldToMap(position.x, position.z); pen.fillStyle = color; pen.beginPath(); pen.arc(x, y, radius, 0, Math.PI * 2); pen.fill(); };
     for (const vehicle of state.vehicles) if (vehicle.mode === 'parked') blip(vehicle.position, '#c8d2dc', 2.2);
     for (const cruiser of state.police) if (cruiser.active) blip(cruiser.position, Math.floor(performance.now() / 300) % 2 ? '#ff4455' : '#4488ff', 3.6);

@@ -44,6 +44,11 @@ export function createRaceSystem(scene, hooks) {
       return true;
     },
     consumeMissionFinish() { const done = this.missionFinishedFlag; this.missionFinishedFlag = false; return done; },
+    // Screenshot staging only: freeze a live mid-race state (beacon lit, timer running) without a countdown.
+    stageRace(checkpointIndex, raceTime) {
+      this.phase = 'running'; this.checkpointIndex = checkpointIndex; this.raceTime = raceTime; this.missionRace = false;
+      moveBeacon(RACE_CHECKPOINTS[checkpointIndex]);
+    },
     finishRace() {
       const time = this.raceTime;
       const prize = Math.max(150, Math.round(640 - time * 3.2));
