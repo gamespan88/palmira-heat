@@ -293,11 +293,16 @@ function animate(now) {
       objective: races.active ? races.statusText() : missions.objectiveText(), wantedText: wanted.starText(), cash: game.cash,
       player, vehicleName: player.vehicle ? player.vehicle.type.kind.toUpperCase() : '', ammo: combat.ammoInMagazine, reserveAmmo: combat.reserveAmmo,
       vehicles, police, heli: airUnit, enemies: missions.enemies, objectiveTarget: races.active ? races.currentTarget() : (missions.taxi?.target || missions.currentStep()?.target),
+      vehicle: player.vehicle, wantedStars: wanted.stars, roadblocksActive: roadblocks.blocks.some((b) => b.active),
     });
     audio.updateMusic(delta, true);
     game.shake = Math.max(0, game.shake - delta * 1.7);
   }
   if (game.shotMode && shotCameraSpec) {
+    if (shotCameraSpec.follow === 'fixed') {
+      camera.position.set(shotCameraSpec.position[0], shotCameraSpec.position[1], shotCameraSpec.position[2]);
+      camera.lookAt(shotCameraSpec.lookAt[0], shotCameraSpec.lookAt[1], shotCameraSpec.lookAt[2]);
+    } else {
     const anchor = shotCameraSpec.follow === 'car' && player.vehicle ? player.vehicle : player;
     const yaw = anchor.yaw || 0; const side = shotCameraSpec.side || 0;
     camera.position.set(
@@ -306,6 +311,7 @@ function animate(now) {
       anchor.position.z - Math.cos(yaw) * shotCameraSpec.back - Math.sin(yaw) * side,
     );
     camera.lookAt(anchor.position.x + Math.sin(yaw) * 8, 1.5, anchor.position.z + Math.cos(yaw) * 8);
+    }
   }
   city.update(delta, game.elapsed);
   effects.update(delta);

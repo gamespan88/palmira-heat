@@ -11,6 +11,10 @@ export function createHud() {
     message: document.getElementById('message'), messageTitle: document.getElementById('messageTitle'), messageText: document.getElementById('messageText'),
     status: document.getElementById('status'), vignette: document.getElementById('damageVignette'),
     district: document.getElementById('districtBanner'),
+    dispatch: document.getElementById('dispatch'), dispatchRows: document.getElementById('dispatchRows'),
+    weaponChip: document.getElementById('weaponChip'), armour: document.getElementById('armourBar'),
+    speedo: document.getElementById('speedo'), speedValue: document.getElementById('speedValue'),
+    speedVehicle: document.getElementById('speedVehicle'), condBar: document.getElementById('condBar'), condLabel: document.getElementById('condLabel'),
   };
   const minimap = document.getElementById('minimap'); const pen = minimap.getContext('2d');
   let subtitleUntil = 0; let messageUntil = 0; let districtUntil = 0;
@@ -62,6 +66,32 @@ export function createHud() {
       elements.wanted.textContent = state.wantedText;
       elements.cash.textContent = formatCash(state.cash);
       elements.weapon.textContent = state.player.mode === 'car' ? state.vehicleName : `PISTOL ${state.ammo} / ${state.reserveAmmo}`;
+      if (elements.weaponChip) elements.weaponChip.textContent = `[1] PISTOL · ${state.ammo}/${state.reserveAmmo}`;
+      if (elements.armour) elements.armour.style.width = `${Math.max(0, Math.min(100, state.player.health * 0.62))}%`;
+      const stars = state.wantedStars ?? 0;
+      if (elements.dispatch) {
+        if (stars >= 3) {
+          elements.dispatch.style.display = 'block';
+          const rows = [];
+          const activePolice = (state.police || []).filter((c) => c.active);
+          activePolice.slice(0, 3).forEach((c, i) => rows.push(`<div class="unit"><span><span class="dot" style="background:${i % 2 ? '#4488ff' : '#ff4455'}"></span>UNIT ${i + 1} · INTERCEPTOR</span><span>PURSUIT</span></div>`));
+          if (state.roadblocksActive) rows.push('<div class="unit"><span><span class="dot" style="background:#ffb02e"></span>UNIT RB · BARRICADE</span><span>ROADBLOCK</span></div>');
+          if (state.heli && state.heli.active) rows.push('<div class="unit"><span><span class="dot" style="background:#e8e6ff"></span>AIR ONE · HELICOPTER</span><span>SEARCHLIGHT</span></div>');
+          if (!rows.length) rows.push('<div class="unit"><span>ALL UNITS</span><span>RESPONDING</span></div>');
+          elements.dispatchRows.innerHTML = rows.join('');
+        } else elements.dispatch.style.display = 'none';
+      }
+      if (elements.speedo) {
+        if (state.player.mode === 'car' && state.vehicle) {
+          elements.speedo.style.display = 'block';
+          const kmh = Math.round(Math.abs(state.vehicle.speed || 0) * 3.6);
+          elements.speedValue.innerHTML = `${kmh} <small>KM/H</small>`;
+          elements.speedVehicle.textContent = state.vehicleName || state.vehicle.type.kind.toUpperCase();
+          const cond = Math.max(0, Math.round(state.vehicle.health));
+          elements.condBar.style.width = `${cond}%`;
+          elements.condLabel.textContent = `CONDITION ${cond}%${cond < 40 ? ' · SMOKING' : ''}`;
+        } else elements.speedo.style.display = 'none';
+      }
       elements.health.style.width = Math.max(0, state.player.health) + '%';
       elements.vignette.style.boxShadow = `inset 0 0 90px rgba(255,0,40,${state.player.health < 35 ? 0.42 : 0})`;
       elements.status.textContent = state.objective;

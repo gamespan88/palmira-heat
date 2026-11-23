@@ -38,6 +38,45 @@
   #pauseScreen, #endScreen { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(10,4,14,.62); z-index:18; }
   .menuCard { padding:26px 34px; text-align:center; min-width:330px; }
   .menuCard h2 { color:#ffd166; margin-top:0; }
+  .bigTitle { font-size:84px; line-height:.92; margin:0; letter-spacing:3px; font-weight:900; background:linear-gradient(180deg,#fff3b0 0%,#ffd166 28%,#ff7b54 58%,#c2437a 82%,#7b2d8b 100%); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 4px 0 rgba(60,10,40,.85)) drop-shadow(0 10px 26px rgba(0,0,0,.65)); }
+  .tagline { color:#9be7ff; font-size:17px; letter-spacing:4px; margin-top:10px; text-shadow:0 2px 8px #000; }
+  #startCard h1 { font-size:64px; line-height:.95; letter-spacing:2px; background:linear-gradient(180deg,#fff3b0,#ffd166 30%,#ff7b54 60%,#c2437a 85%); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 3px 0 rgba(60,10,40,.8)); }
+  #titleScreen { position:fixed; inset:0; display:none; z-index:22; pointer-events:none; background:linear-gradient(180deg, rgba(30,8,40,.12) 40%, rgba(12,4,20,.55) 100%); }
+  #titleTop { position:absolute; top:34px; left:0; right:0; text-align:center; }
+  #titleMenu { position:absolute; left:34px; bottom:34px; padding:16px 20px; min-width:230px; }
+  #titleMenu div { font-size:17px; padding:7px 10px; letter-spacing:2px; }
+  #titleMenu div.sel { background:#c2437a; color:#fff; border-radius:5px; font-weight:bold; }
+  #titleMenu div.dim { color:#cdbfd4; }
+  #saveCard { position:absolute; right:34px; bottom:34px; padding:16px 20px; width:300px; font-size:14px; line-height:1.55; }
+  #saveCard b { color:#ffd166; letter-spacing:1px; }
+  #saveCard .row { display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,.14); padding:3px 0; }
+  #dispatch { position:absolute; top:118px; left:16px; padding:9px 12px; min-width:205px; display:none; font-size:12px; }
+  #dispatch b { color:#ff8f9d; letter-spacing:1px; font-size:12px; }
+  #dispatch .unit { display:flex; justify-content:space-between; gap:14px; margin-top:4px; }
+  #dispatch .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
+  #weaponChip { display:inline-block; margin-top:6px; padding:4px 9px; border:1px solid #ffd166; border-radius:5px; background:rgba(194,67,122,.35); font-size:13px; font-weight:bold; letter-spacing:1px; }
+  #armourWrap { width:170px; height:7px; background:#1c2b3a; border:1px solid #fff3; margin-top:4px; margin-left:auto; }
+  #armourBar { height:100%; width:62%; background:linear-gradient(90deg,#53e9ff,#9be7ff); }
+  #speedo { position:absolute; left:16px; bottom:104px; padding:12px 16px; display:none; min-width:190px; }
+  #speedValue { font-size:46px; font-weight:900; line-height:1; color:#fff; }
+  #speedValue small { font-size:15px; color:#ffd166; letter-spacing:1px; }
+  #speedVehicle { font-size:13px; font-weight:bold; letter-spacing:1px; color:#9be7ff; margin-top:3px; }
+  #condWrap { width:100%; height:9px; background:#351923; border:1px solid #fff3; margin-top:7px; }
+  #condBar { height:100%; width:100%; background:linear-gradient(90deg,#ff5964,#ffd166,#8dff9a); }
+  #condLabel { font-size:11px; color:#e8dcc8; margin-top:3px; letter-spacing:1px; }
+  #mapScreen { position:fixed; inset:0; display:none; z-index:21; background:rgba(10,5,16,.88); padding:16px 22px; box-sizing:border-box; }
+  #mapInner { display:flex; gap:22px; height:100%; }
+  #mapLeft { flex:none; width:468px; } #mapLegend { width:468px; } #mapRight { flex:1; min-width:0; }
+  #mapLeft h2, #mapRight h2 { margin:0 0 8px; color:#ffd166; letter-spacing:2px; font-size:18px; white-space:nowrap; }
+  #cityMap { border:2px solid rgba(255,209,102,.85); border-radius:8px; background:#17263a; box-shadow:0 6px 26px rgba(0,0,0,.6); }
+  #mapLegend { font-size:12px; line-height:1.5; margin-top:8px; color:#e8dcc8; line-height:1.6; }
+  #mapRight { flex:1; overflow:hidden; }
+  .mapPanel { padding:8px 13px; margin-bottom:8px; font-size:12.5px; line-height:1.3; }
+  .mapPanel h3 { margin:0 0 4px; color:#9be7ff; letter-spacing:2px; font-size:14px; }
+  .mapPanel .row { display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,.12); padding:1px 0; }
+  .mapPanel .cur { color:#ffd166; font-weight:bold; }
+  .mapPanel .done { color:#8dff9a; }
+  .saveSlot { border:1px solid rgba(255,209,102,.5); border-radius:6px; padding:4px 9px; margin-top:4px; background:rgba(255,255,255,.05); font-size:11.5px; }
   #damageVignette { position:fixed; inset:0; pointer-events:none; box-shadow:inset 0 0 90px rgba(255,0,40,0); z-index:9; }
   #status { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
   @media (max-width:760px) { #startCard h1 { font-size:38px; } .controls { grid-template-columns:1fr; } #minimap { width:148px; height:148px; } }
@@ -68,9 +107,36 @@
   </div>
 </section>
 
+<section id="titleScreen" aria-label="Palmira Heat title screen">
+  <div id="titleTop"><h1 class="bigTitle">PALMIRA<br>HEAT</h1><div class="tagline">ONE COURIER · ONE CITY · EVERY COP IN PALMIRA</div></div>
+  <div id="titleMenu" class="panel"><div class="sel">▶ CONTINUE</div><div>NEW GAME</div><div>CONTROLS</div><div class="dim">MARINA LOOP — BEST 47.3s</div></div>
+  <div id="saveCard" class="panel"><b>SAVE — RICO MARÍN</b>
+    <div class="row"><span>STORY</span><span id="saveStory">8 / 10 — LAST FERRY OUT</span></div>
+    <div class="row"><span>CASH</span><span id="saveCash">$120</span></div>
+    <div class="row"><span>LAST LOCATION</span><span>MARINA &amp; PIER</span></div>
+    <div class="row"><span>TAXI FARES</span><span>3 · CARS TAKEN 6</span></div>
+    <div class="row"><span>NEXT</span><span>THE LONG WAY HOME</span></div>
+  </div>
+</section>
+
+<section id="mapScreen" aria-label="Palmira city map and career">
+  <div id="mapInner">
+    <div id="mapLeft"><h2>PALMIRA — CITY MAP</h2><canvas id="cityMap" width="468" height="452"></canvas>
+      <div id="mapLegend">◆ <span style="color:#ffd166">GOLD — story objective</span> · ◆ <span style="color:#53e9ff">CYAN — Marina Loop race</span> · ▲ YOU · ● POLICE · 3 DISTRICTS · 7×7 ROAD GRID · NEON PIER &amp; FERRY (SOUTH)</div>
+    </div>
+    <div id="mapRight"><h2>CAREER — RICO MARÍN</h2>
+      <div class="mapPanel panel"><h3>STORY — 10 MISSIONS</h3><div id="storyList"></div></div>
+      <div class="mapPanel panel"><h3>CAREER STATS</h3><div id="careerStats"></div></div>
+      <div class="mapPanel panel"><h3>SAVE SLOTS</h3><div id="saveSlots"></div></div>
+    </div>
+  </div>
+</section>
+
 <div id="hud" aria-hidden="true">
   <div id="topLeft" class="panel"><div id="gameTitle">PALMIRA HEAT</div><div id="objective">Explore Palmira</div></div>
-  <div id="topRight" class="panel"><div id="wantedStars"></div><div id="cash">$0</div><div id="weaponLine">PISTOL 12 / 12</div><div id="healthWrap"><div id="healthBar"></div></div></div>
+  <div id="dispatch" class="panel"><b>📻 PALMIRA PD — DISPATCH</b><div id="dispatchRows"></div></div>
+  <div id="topRight" class="panel"><div id="wantedStars"></div><div id="cash">$0</div><div id="weaponLine">PISTOL 12 / 12</div><div><span id="weaponChip">[1] PISTOL · 12/72</span></div><div id="healthWrap"><div id="healthBar"></div></div><div id="armourWrap"><div id="armourBar"></div></div></div>
+  <div id="speedo" class="panel"><div id="speedValue">0 <small>KM/H</small></div><div id="speedVehicle">VELA GT COUPE</div><div id="condWrap"><div id="condBar"></div></div><div id="condLabel">CONDITION 100%</div></div>
   <canvas id="minimap" width="220" height="220"></canvas>
   <div id="districtBanner" class="panel"></div>
   <div id="prompt" class="panel"></div>

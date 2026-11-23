@@ -9,7 +9,9 @@ const bodyGeometry = new THREE.BoxGeometry(2.05, 0.72, 4.35);
 const cabinGeometry = new THREE.BoxGeometry(1.78, 0.62, 2.05);
 const wheelGeometry = new THREE.CylinderGeometry(0.38, 0.38, 0.28, 10);
 const wheelMaterial = new THREE.MeshStandardMaterial({ color: 0x17181d, roughness: 0.9 });
-const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x9be7ff, roughness: 0.18, metalness: 0.35 });
+const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x2a4a5e, roughness: 0.12, metalness: 0.55 });
+const hubMaterial = new THREE.MeshStandardMaterial({ color: 0xd8dee6, roughness: 0.35, metalness: 0.6 });
+const darkTrimMaterial = new THREE.MeshStandardMaterial({ color: 0x1c1e26, roughness: 0.7 });
 const lightMaterial = new THREE.MeshBasicMaterial({ color: 0xfff2a8 });
 const tailMaterial = new THREE.MeshBasicMaterial({ color: 0xff3344 });
 
@@ -30,23 +32,41 @@ export function createCarMesh(type, isPolice = false) {
     addBox(group, new THREE.BoxGeometry(1.5, 0.55, 1.6), new THREE.MeshStandardMaterial({ color: 0xb47a45, roughness: 1 }), 0, 0.95, -1.15);
   }
   else if (type.kind.includes('Convertible')) {
-    const openCabin = addBox(group, cabinGeometry, glassMaterial, 0, 0.98, -0.18);
-    openCabin.scale.set(0.96, 0.42, 0.9);
+    // Windshield frame in paint colour + a low tinted glass pane; open rear deck behind it.
+    addBox(group, new THREE.BoxGeometry(1.78, 0.5, 0.1), paint, 0, 1.12, 0.62);
+    addBox(group, new THREE.BoxGeometry(1.6, 0.36, 0.06), glassMaterial, 0, 1.12, 0.66);
     addBox(group, new THREE.BoxGeometry(1.7, 0.3, 0.5), new THREE.MeshStandardMaterial({ color: 0x24122e, roughness: 0.9 }), 0, 0.92, -1.35);
+    addBox(group, new THREE.BoxGeometry(1.78, 0.34, 1.1), paint, 0, 0.98, -0.55);
   }
   else {
-    const cabin = addBox(group, cabinGeometry, glassMaterial, 0, 1.18, -0.18);
-    if (type.kind.includes('Coupe')) cabin.scale.set(0.94, 0.82, 0.82);
+    // Paint-coloured roof + pillars with a tinted glass band around the cabin.
+    const cabinZ = -0.18;
+    addBox(group, new THREE.BoxGeometry(1.82, 0.14, 2.0), paint, 0, 1.52, cabinZ);
+    addBox(group, new THREE.BoxGeometry(1.8, 0.42, 2.02), glassMaterial, 0, 1.26, cabinZ);
+    for (const px of [-0.84, 0.84]) for (const pz of [0.78, -1.14]) addBox(group, new THREE.BoxGeometry(0.12, 0.55, 0.12), paint, px, 1.24, cabinZ + pz + 0.18);
+    if (type.kind.includes('Coupe')) {
+      addBox(group, new THREE.BoxGeometry(1.9, 0.09, 0.55), darkTrimMaterial, 0, 1.06, -2.28);
+      addBox(group, new THREE.BoxGeometry(0.1, 0.22, 0.4), darkTrimMaterial, -0.7, 0.92, -2.05);
+      addBox(group, new THREE.BoxGeometry(0.1, 0.22, 0.4), darkTrimMaterial, 0.7, 0.92, -2.05);
+    }
   }
-  if (type.kind.includes('Taxi')) addBox(group, new THREE.BoxGeometry(1.0, 0.28, 0.5), new THREE.MeshBasicMaterial({ color: 0x24122e }), 0, 1.62, -0.15);
+  // Bumpers, mirrors and door handles on every car.
+  addBox(group, new THREE.BoxGeometry(2.1, 0.22, 0.18), darkTrimMaterial, 0, 0.34, 2.22);
+  addBox(group, new THREE.BoxGeometry(2.1, 0.22, 0.18), darkTrimMaterial, 0, 0.34, -2.22);
+  addBox(group, new THREE.BoxGeometry(0.28, 0.1, 0.16), paint, -1.12, 1.18, 0.55);
+  addBox(group, new THREE.BoxGeometry(0.28, 0.1, 0.16), paint, 1.12, 1.18, 0.55);
+  if (type.kind.includes('Taxi')) addBox(group, new THREE.BoxGeometry(1.0, 0.28, 0.5), new THREE.MeshBasicMaterial({ color: 0x24122e }), 0, 1.68, -0.15);
   if (isPolice) {
-    addBox(group, new THREE.BoxGeometry(2.1, 0.2, 4.4), new THREE.MeshStandardMaterial({ color: PALETTE.policeTrim }), 0, 0.98, 0);
-    const lightBar = addBox(group, new THREE.BoxGeometry(1.35, 0.2, 0.42), new THREE.MeshBasicMaterial({ color: 0xff3344 }), 0, 1.62, -0.15);
+    addBox(group, new THREE.BoxGeometry(2.12, 0.34, 4.42), new THREE.MeshStandardMaterial({ color: PALETTE.policeTrim }), 0, 0.62, 0);
+    addBox(group, new THREE.BoxGeometry(2.14, 0.2, 1.1), new THREE.MeshStandardMaterial({ color: 0x11131c }), 0, 0.62, 1.55);
+    const lightBarBase = addBox(group, new THREE.BoxGeometry(1.5, 0.1, 0.5), darkTrimMaterial, 0, 1.62, -0.18);
+    const lightBar = addBox(group, new THREE.BoxGeometry(0.7, 0.2, 0.44), new THREE.MeshBasicMaterial({ color: 0xff3344 }), 0.36, 1.76, -0.18);
     lightBar.name = 'lightBar';
-    addBox(group, new THREE.BoxGeometry(0.62, 0.2, 0.42), new THREE.MeshBasicMaterial({ color: 0x3377ff }), -0.68, 1.62, -0.15);
+    addBox(group, new THREE.BoxGeometry(0.7, 0.2, 0.44), new THREE.MeshBasicMaterial({ color: 0x3377ff }), -0.36, 1.76, -0.18);
   }
   for (const [x, z] of [[-1.02, 1.42], [1.02, 1.42], [-1.02, -1.42], [1.02, -1.42]]) {
     const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial); wheel.rotation.z = Math.PI / 2; wheel.position.set(x, 0.38, z); wheel.castShadow = true; group.add(wheel);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.19, 0.3, 10), hubMaterial); hub.rotation.z = Math.PI / 2; hub.position.set(x, 0.38, z); group.add(hub);
   }
   addBox(group, new THREE.BoxGeometry(0.34, 0.16, 0.06), lightMaterial, -0.62, 0.68, 2.19);
   addBox(group, new THREE.BoxGeometry(0.34, 0.16, 0.06), lightMaterial, 0.62, 0.68, 2.19);

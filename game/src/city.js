@@ -108,8 +108,8 @@ export function buildCity(scene) {
 
   const trunkGeometry = new THREE.CylinderGeometry(0.28, 0.42, 5.4, 6);
   const leafGeometry = new THREE.ConeGeometry(3.4, 2.4, 7);
-  const trunks = new THREE.InstancedMesh(trunkGeometry, new THREE.MeshStandardMaterial({ color: PALETTE.palmTrunk, roughness: 1 }), 170);
-  const leaves = new THREE.InstancedMesh(leafGeometry, new THREE.MeshStandardMaterial({ color: PALETTE.palmLeaf, roughness: 1 }), 170);
+  const trunks = new THREE.InstancedMesh(trunkGeometry, new THREE.MeshStandardMaterial({ color: PALETTE.palmTrunk, roughness: 1 }), 280);
+  const leaves = new THREE.InstancedMesh(leafGeometry, new THREE.MeshStandardMaterial({ color: PALETTE.palmLeaf, roughness: 1 }), 280);
   let palmIndex = 0;
   for (const road of WORLD.roadCoordinates) for (let p = -190; p <= 190; p += 23) {
     if (palmIndex >= 168) break;
@@ -117,6 +117,14 @@ export function buildCity(scene) {
     if (colliders.some((box) => x > box.minX - 2 && x < box.maxX + 2 && z > box.minZ - 2 && z < box.maxZ + 2)) continue;
     matrix.compose(new THREE.Vector3(x, 2.7, z), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)); trunks.setMatrixAt(palmIndex, matrix);
     matrix.compose(new THREE.Vector3(x, 6.1, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI, 0, random() * 3)), new THREE.Vector3(1, 1, 1)); leaves.setMatrixAt(palmIndex, matrix);
+    palmIndex += 1;
+  }
+  // Marina promenade: a dense palm row along the coast road so the waterfront reads as a boulevard.
+  for (let x = -190; x <= 190 && palmIndex < 278; x += 17) {
+    if (x > 82 && x < 112) continue; // keep the pier span clear
+    const z = 155 + (Math.abs(x) % 3);
+    matrix.compose(new THREE.Vector3(x, 2.7, z), new THREE.Quaternion(), new THREE.Vector3(1, 1.15, 1)); trunks.setMatrixAt(palmIndex, matrix);
+    matrix.compose(new THREE.Vector3(x, 6.6, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI, 0, x)), new THREE.Vector3(1.15, 1, 1.15)); leaves.setMatrixAt(palmIndex, matrix);
     palmIndex += 1;
   }
   trunks.count = palmIndex; leaves.count = palmIndex; trunks.castShadow = true; city.add(trunks, leaves);
