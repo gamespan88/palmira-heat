@@ -14,6 +14,38 @@ function makeFacadeTexture(random, base, windowColor) {
   const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
+// A vertical sunset gradient for the sky dome: deep violet zenith melting through
+// magenta and coral into gold at the horizon, so every camera angle gets a rich sky.
+function makeSkyTexture() {
+  const canvas = document.createElement('canvas'); canvas.width = 4; canvas.height = 512;
+  const pen = canvas.getContext('2d');
+  const grad = pen.createLinearGradient(0, 0, 0, 512);
+  grad.addColorStop(0, '#241047'); grad.addColorStop(0.34, '#6d2a7a'); grad.addColorStop(0.58, '#c2437a');
+  grad.addColorStop(0.78, '#ff7b54'); grad.addColorStop(0.92, '#ffb36b'); grad.addColorStop(1, '#ffd166');
+  pen.fillStyle = grad; pen.fillRect(0, 0, 4, 512);
+  const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+function makeAwningTexture(colorA, colorB) {
+  const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 32;
+  const pen = canvas.getContext('2d');
+  for (let x = 0; x < 128; x += 16) { pen.fillStyle = (x / 16) % 2 ? colorA : colorB; pen.fillRect(x, 0, 16, 32); }
+  const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+// One palm frond: a plane bent so the tip droops — instanced six-to-a-crown it reads
+// as a real palm silhouette instead of a green cone on a stick.
+function makeFrondGeometry() {
+  const geometry = new THREE.PlaneGeometry(0.85, 3.6, 1, 5);
+  const positions = geometry.attributes.position;
+  for (let i = 0; i < positions.count; i += 1) {
+    const y = positions.getY(i); const t = (y + 1.8) / 3.6;
+    positions.setZ(i, -Math.pow(t, 2) * 1.6);
+  }
+  geometry.translate(0, 1.8, 0);
+  geometry.computeVertexNormals();
+  return geometry;
+}
 function makeSignTexture(text, background, foreground) {
   const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 64;
   const pen = canvas.getContext('2d');
@@ -42,7 +74,7 @@ export function buildCity(scene) {
   sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.camera.left = -205; sun.shadow.camera.right = 205; sun.shadow.camera.top = 205; sun.shadow.camera.bottom = -205;
   sun.shadow.camera.far = 460; sun.shadow.bias = -0.0004; scene.add(sun);
-  const skyDome = new THREE.Mesh(new THREE.SphereGeometry(520, 24, 12), new THREE.MeshBasicMaterial({ color: PALETTE.sky, side: THREE.BackSide, fog: false }));
+  const skyDome = new THREE.Mesh(new THREE.SphereGeometry(520, 24, 12), new THREE.MeshBasicMaterial({ map: makeSkyTexture(), side: THREE.BackSide, fog: false }));
   scene.add(skyDome);
 
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(470, 470), new THREE.MeshStandardMaterial({ color: PALETTE.sidewalk, roughness: 1 }));
@@ -71,6 +103,8 @@ export function buildCity(scene) {
   const downtownGlass = new THREE.MeshStandardMaterial({ map: makeFacadeTexture(random, '#7fb6c9', '#c8f4ff'), emissive: 0x9fd8e8, emissiveIntensity: 0.22, roughness: 0.4, metalness: 0.3 });
   const roofMaterial = new THREE.MeshStandardMaterial({ color: 0x6b4a52, roughness: 1 });
   const mercadoRoofMaterial = new THREE.MeshStandardMaterial({ color: 0x9a4a38, roughness: 1 });
+  const awningGeometry = new THREE.BoxGeometry(1, 0.16, 2.3);
+  const awningMaterials = [['#c0392b', '#f7ead9'], ['#0e7c86', '#f7ead9'], ['#e07b2a', '#fdf3d8']].map(([a, b]) => new THREE.MeshStandardMaterial({ map: makeAwningTexture(a, b), roughness: 0.9 }));
   const buildingGeometry = new THREE.BoxGeometry(1, 1, 1);
   const signNames = ['CAFE SOL', 'HOTEL PALMA', 'MARINA GYM', 'SOLSTICE GARAGE', 'TESSA MOTORS', 'NEON MARKET', 'PIER TACOS', 'BANCO BRISA', 'HOTEL CORAL', 'CINE PALMIRA', 'FARMACIA SOL', 'PUERTO LIBROS'];
   const mercadoSignNames = ['MERCADO CENTRAL', 'PANADERIA LUZ', 'TIENDA BRISA', 'ABARROTES SOL', 'CANTINA MAR', 'FLORERIA PALMA'];
@@ -103,31 +137,41 @@ export function buildCity(scene) {
         sign.position.set(x, Math.min(8, height - 2), z - depth / 2 - 0.06); sign.rotation.y = Math.PI; city.add(sign);
         if (inMercado) mercadoSignIndex += 1; else signIndex += 1;
       }
+      // Striped shop awnings shade the Mercado frontages.
+      if (inMercado && random() > 0.35) {
+        const awning = new THREE.Mesh(awningGeometry, awningMaterials[Math.floor(random() * awningMaterials.length)]);
+        awning.scale.set(Math.min(width * 0.72, 11), 1, 1); awning.position.set(x, 3.1, z - depth / 2 - 1.0); awning.rotation.x = 0.38; awning.castShadow = true; city.add(awning);
+      }
     }
   }
 
-  const trunkGeometry = new THREE.CylinderGeometry(0.28, 0.42, 5.4, 6);
-  const leafGeometry = new THREE.ConeGeometry(3.4, 2.4, 7);
-  const trunks = new THREE.InstancedMesh(trunkGeometry, new THREE.MeshStandardMaterial({ color: PALETTE.palmTrunk, roughness: 1 }), 280);
-  const leaves = new THREE.InstancedMesh(leafGeometry, new THREE.MeshStandardMaterial({ color: PALETTE.palmLeaf, roughness: 1 }), 280);
-  let palmIndex = 0;
+  // Palms: tall trunks crowned with six drooping fronds and a coconut cluster each.
+  const palmSpots = [];
   for (const road of WORLD.roadCoordinates) for (let p = -190; p <= 190; p += 23) {
-    if (palmIndex >= 168) break;
+    if (palmSpots.length >= 168) break;
     const x = road + (random() > 0.5 ? 9.5 : -9.5); const z = p + random() * 5;
     if (colliders.some((box) => x > box.minX - 2 && x < box.maxX + 2 && z > box.minZ - 2 && z < box.maxZ + 2)) continue;
-    matrix.compose(new THREE.Vector3(x, 2.7, z), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)); trunks.setMatrixAt(palmIndex, matrix);
-    matrix.compose(new THREE.Vector3(x, 6.1, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI, 0, random() * 3)), new THREE.Vector3(1, 1, 1)); leaves.setMatrixAt(palmIndex, matrix);
-    palmIndex += 1;
+    palmSpots.push([x, z, 1]);
   }
   // Marina promenade: a dense palm row along the coast road so the waterfront reads as a boulevard.
-  for (let x = -190; x <= 190 && palmIndex < 278; x += 17) {
+  for (let x = -190; x <= 190 && palmSpots.length < 278; x += 17) {
     if (x > 82 && x < 112) continue; // keep the pier span clear
-    const z = 155 + (Math.abs(x) % 3);
-    matrix.compose(new THREE.Vector3(x, 2.7, z), new THREE.Quaternion(), new THREE.Vector3(1, 1.15, 1)); trunks.setMatrixAt(palmIndex, matrix);
-    matrix.compose(new THREE.Vector3(x, 6.6, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI, 0, x)), new THREE.Vector3(1.15, 1, 1.15)); leaves.setMatrixAt(palmIndex, matrix);
-    palmIndex += 1;
+    palmSpots.push([x, 155 + (Math.abs(x) % 3), 1.15]);
   }
-  trunks.count = palmIndex; leaves.count = palmIndex; trunks.castShadow = true; city.add(trunks, leaves);
+  const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.24, 0.42, 6.4, 6), new THREE.MeshStandardMaterial({ color: PALETTE.palmTrunk, roughness: 1 }), palmSpots.length);
+  const fronds = new THREE.InstancedMesh(makeFrondGeometry(), new THREE.MeshStandardMaterial({ color: PALETTE.palmLeaf, roughness: 1, side: THREE.DoubleSide }), palmSpots.length * 6);
+  const coconuts = new THREE.InstancedMesh(new THREE.SphereGeometry(0.3, 7, 6), new THREE.MeshStandardMaterial({ color: 0x6b4a2a, roughness: 1 }), palmSpots.length);
+  const frondEuler = new THREE.Euler(); const frondQuat = new THREE.Quaternion();
+  palmSpots.forEach(([x, z, s], i) => {
+    const topY = 6.3 * s;
+    matrix.compose(new THREE.Vector3(x, topY / 2, z), new THREE.Quaternion(), new THREE.Vector3(1, s, 1)); trunks.setMatrixAt(i, matrix);
+    matrix.compose(new THREE.Vector3(x, topY - 0.25, z), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)); coconuts.setMatrixAt(i, matrix);
+    for (let f = 0; f < 6; f += 1) {
+      frondEuler.set(-1.12 - (f % 3) * 0.14, (f / 6) * Math.PI * 2 + x * 0.7, 0, 'YXZ'); frondQuat.setFromEuler(frondEuler);
+      matrix.compose(new THREE.Vector3(x, topY, z), frondQuat, new THREE.Vector3(s, s, s)); fronds.setMatrixAt(i * 6 + f, matrix);
+    }
+  });
+  trunks.castShadow = true; fronds.castShadow = true; city.add(trunks, fronds, coconuts);
 
   const lampGeometry = new THREE.CylinderGeometry(0.12, 0.12, 5.6, 5);
   const lampHeads = new THREE.SphereGeometry(0.42, 8, 6);
@@ -174,7 +218,45 @@ export function buildCity(scene) {
     crates.setMatrixAt(i, matrix);
   }
   crates.castShadow = true; city.add(crates);
-  return { colliders, update(delta, elapsed) { waterMaterial.opacity = 0.88 + Math.sin(elapsed * 1.4) * 0.04; water.position.y = -0.12 + Math.sin(elapsed * 0.9) * 0.05; } };
+
+  // Beach umbrellas in carnival colours scattered along the sand.
+  const umbrellaCount = 26;
+  const umbrellaPoles = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.05, 0.05, 2.3, 5), new THREE.MeshStandardMaterial({ color: 0xf2ead8, roughness: 0.8 }), umbrellaCount);
+  const umbrellaCanopies = new THREE.InstancedMesh(new THREE.ConeGeometry(1.7, 0.75, 9), new THREE.MeshStandardMaterial({ roughness: 0.85 }), umbrellaCount);
+  const umbrellaColors = [0xff5964, 0xffd166, 0x4ecdc4, 0xff8c42, 0x9be7ff, 0xf78fb3];
+  const umbrellaColor = new THREE.Color();
+  for (let i = 0; i < umbrellaCount; i += 1) {
+    let x = -185 + i * 14.5 + (random() - 0.5) * 6;
+    if (x > 84 && x < 112) x += 34; // keep the pier span clear
+    const z = WORLD.coastZ + 14 + (i % 3) * 8 + random() * 3;
+    matrix.compose(new THREE.Vector3(x, 1.15, z), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)); umbrellaPoles.setMatrixAt(i, matrix);
+    matrix.compose(new THREE.Vector3(x, 2.45, z), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)); umbrellaCanopies.setMatrixAt(i, matrix);
+    umbrellaCanopies.setColorAt(i, umbrellaColor.setHex(umbrellaColors[i % umbrellaColors.length]));
+  }
+  umbrellaCanopies.castShadow = true; city.add(umbrellaPoles, umbrellaCanopies);
+
+  // The Neon Pier ferris wheel: a glowing rim of gondolas turning slowly over the water.
+  const ferrisWheel = new THREE.Group();
+  const wheelFrame = new THREE.MeshStandardMaterial({ color: 0xf4e9f2, roughness: 0.5, metalness: 0.3, emissive: 0xff9ecb, emissiveIntensity: 0.25 });
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(11, 0.32, 8, 30), wheelFrame); ferrisWheel.add(rim);
+  const innerRim = new THREE.Mesh(new THREE.TorusGeometry(7.5, 0.2, 6, 24), wheelFrame); ferrisWheel.add(innerRim);
+  for (let s = 0; s < 4; s += 1) {
+    const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.28, 21.5, 0.28), wheelFrame); spoke.rotation.z = s * Math.PI / 4; ferrisWheel.add(spoke);
+  }
+  const gondolaColors = [0xff5964, 0xffd166, 0x4ecdc4, 0xff8c42, 0x9be7ff, 0xf78fb3, 0x95e06c, 0xff4fd8];
+  for (let g = 0; g < 8; g += 1) {
+    const angle = (g / 8) * Math.PI * 2;
+    const gondola = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.3, 1.2), new THREE.MeshStandardMaterial({ color: gondolaColors[g], roughness: 0.6, emissive: gondolaColors[g], emissiveIntensity: 0.3 }));
+    gondola.position.set(Math.cos(angle) * 11, Math.sin(angle) * 11, 0); ferrisWheel.add(gondola);
+  }
+  const hub = new THREE.Mesh(new THREE.SphereGeometry(1.1, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffd166 })); ferrisWheel.add(hub);
+  ferrisWheel.position.set(126, 13.5, 204); city.add(ferrisWheel);
+  const legMaterial = new THREE.MeshStandardMaterial({ color: 0x39404f, roughness: 0.7 });
+  for (const sideSign of [-1, 1]) {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.5, 15, 0.5), legMaterial);
+    leg.position.set(126 + sideSign * 5.5, 6.5, 204); leg.rotation.z = sideSign * -0.36; city.add(leg);
+  }
+  return { colliders, update(delta, elapsed) { waterMaterial.opacity = 0.88 + Math.sin(elapsed * 1.4) * 0.04; water.position.y = -0.12 + Math.sin(elapsed * 0.9) * 0.05; ferrisWheel.rotation.z += delta * 0.12; } };
 }
 
 export function resolveBuildingCollisions(position, radius, colliders) {

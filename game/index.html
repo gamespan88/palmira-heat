@@ -21,12 +21,39 @@
   #topLeft { position:absolute; top:14px; left:16px; padding:10px 13px; min-width:205px; }
   #gameTitle { color:#ffd166; font-weight:bold; letter-spacing:1px; font-size:15px; }
   #objective { margin-top:5px; font-size:13px; line-height:1.35; max-width:285px; }
-  #topRight { position:absolute; top:14px; right:16px; text-align:right; padding:10px 13px; min-width:150px; }
+  #topRight { position:absolute; top:14px; right:16px; text-align:right; padding:10px 13px; width:252px; box-sizing:border-box; }
   #wantedStars { color:#ffd166; font-size:24px; letter-spacing:2px; text-shadow:0 2px 5px #000; min-height:29px; }
-  #cash { color:#8dff9a; font-size:20px; font-weight:bold; }
-  #weaponLine { font-size:13px; margin-top:3px; }
-  #healthWrap { width:170px; height:13px; background:#351923; border:1px solid #fff3; margin-top:7px; margin-left:auto; }
+  #cash { color:#8dff9a; font-size:22px; font-weight:bold; }
+  #weaponLine { font-size:12px; margin-top:2px; color:#e8dcc8; }
+  #rankBlock { margin-top:7px; }
+  #rankLine { display:flex; justify-content:space-between; align-items:center; font-size:12px; letter-spacing:1px; }
+  #rankChip { background:#2ee6c8; color:#12242a; font-weight:bold; padding:2px 7px; border-radius:4px; }
+  #rankName { color:#ffd166; font-weight:bold; letter-spacing:2px; }
+  #rpWrap { height:6px; background:#26324a; border:1px solid #fff3; margin-top:4px; }
+  #rpBar { height:100%; width:20%; background:linear-gradient(90deg,#2ee6c8,#9be7ff); }
+  #rpText { font-size:10px; color:#cdbfd4; margin-top:2px; letter-spacing:1px; }
+  #weaponSlots { display:flex; gap:5px; margin-top:8px; }
+  .slot { flex:1; background:rgba(38,50,74,.85); border:1px solid rgba(255,255,255,.25); border-radius:5px; padding:4px 3px 3px; text-align:center; position:relative; }
+  .slot .slotKey { position:absolute; top:1px; left:4px; font-size:8px; color:#9fb6c9; }
+  .slot .slotName { display:block; font-size:10px; font-weight:bold; letter-spacing:.5px; margin-top:5px; }
+  .slot .slotAmmo { display:block; font-size:9px; color:#ffd166; margin-top:1px; min-height:11px; }
+  .slot.active { background:#c2437a; border-color:#ffd166; box-shadow:0 0 10px rgba(255,123,84,.55); }
+  .barRow { display:flex; align-items:center; gap:7px; margin-top:7px; }
+  .barRow .barLabel { font-size:10px; letter-spacing:1px; color:#9be7ff; width:52px; text-align:left; }
+  .barRow .barValue { font-size:11px; font-weight:bold; width:26px; }
+  #healthWrap { flex:1; height:12px; background:#351923; border:1px solid #fff3; }
   #healthBar { height:100%; width:100%; background:linear-gradient(90deg,#ff5964,#ffd166); }
+  #armourWrap { flex:1; height:8px; background:#1c2b3a; border:1px solid #fff3; }
+  #armourBar { height:100%; width:62%; background:linear-gradient(90deg,#53e9ff,#9be7ff); }
+  #crewCards { position:absolute; right:16px; top:246px; width:218px; display:flex; flex-direction:column; gap:5px; }
+  .crewCard { display:flex; align-items:center; gap:8px; background:rgba(20,10,24,.85); border:1px solid #888; border-left:5px solid #888; border-radius:6px; padding:5px 8px; box-shadow:0 3px 14px rgba(0,0,0,.4); }
+  .crewFace { width:26px; height:26px; border-radius:50%; flex:none; box-shadow:inset 0 -7px 0 rgba(0,0,0,.28); }
+  .crewText { flex:1; min-width:0; }
+  .crewText b { display:block; font-size:11.5px; letter-spacing:.5px; white-space:nowrap; }
+  .crewText small { display:block; font-size:9.5px; color:#cdbfd4; white-space:nowrap; }
+  .crewCd { font-size:14px; font-weight:bold; color:#ffd166; }
+  .crewCard.ready .crewCd { color:#8dff9a; font-size:11px; }
+  #radioLine { position:absolute; left:16px; bottom:232px; padding:6px 11px; font-size:12px; color:#9be7ff; display:none; letter-spacing:.5px; }
   #minimap { position:absolute; right:16px; bottom:16px; width:196px; height:196px; border-radius:50%; border:3px solid rgba(255,209,102,.9); box-shadow:0 5px 22px rgba(0,0,0,.55); background:#17263a; }
   #districtBanner { position:absolute; top:16px; left:50%; transform:translateX(-50%); padding:8px 22px; font-size:17px; font-weight:bold; letter-spacing:3px; color:#ffd166; display:none; }
   #prompt { position:absolute; left:50%; bottom:118px; transform:translateX(-50%); padding:9px 15px; font-size:15px; display:none; }
@@ -42,41 +69,76 @@
   .tagline { color:#9be7ff; font-size:17px; letter-spacing:4px; margin-top:10px; text-shadow:0 2px 8px #000; }
   #startCard h1 { font-size:64px; line-height:.95; letter-spacing:2px; background:linear-gradient(180deg,#fff3b0,#ffd166 30%,#ff7b54 60%,#c2437a 85%); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 3px 0 rgba(60,10,40,.8)); }
   #titleScreen { position:fixed; inset:0; display:none; z-index:22; pointer-events:none; background:linear-gradient(180deg, rgba(30,8,40,.12) 40%, rgba(12,4,20,.55) 100%); }
-  #titleTop { position:absolute; top:34px; left:0; right:0; text-align:center; }
-  #titleMenu { position:absolute; left:34px; bottom:34px; padding:16px 20px; min-width:230px; }
-  #titleMenu div { font-size:17px; padding:7px 10px; letter-spacing:2px; }
+  #titleTop { position:absolute; top:30px; left:0; right:0; text-align:center; }
+  #titleMenu { position:absolute; left:34px; bottom:52px; padding:14px 18px; min-width:225px; }
+  #titleMenu div { font-size:16px; padding:6px 10px; letter-spacing:2px; }
   #titleMenu div.sel { background:#c2437a; color:#fff; border-radius:5px; font-weight:bold; }
-  #titleMenu div.dim { color:#cdbfd4; }
-  #saveCard { position:absolute; right:34px; bottom:34px; padding:16px 20px; width:300px; font-size:14px; line-height:1.55; }
-  #saveCard b { color:#ffd166; letter-spacing:1px; }
-  #saveCard .row { display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,.14); padding:3px 0; }
-  #dispatch { position:absolute; top:118px; left:16px; padding:9px 12px; min-width:205px; display:none; font-size:12px; }
+  #titleMenu div.dim { color:#cdbfd4; font-size:12.5px; letter-spacing:1px; }
+  #titleHint { position:absolute; left:50%; bottom:16px; transform:translateX(-50%); font-size:11.5px; letter-spacing:1.5px; color:#e8dcc8; text-shadow:0 2px 6px #000; white-space:nowrap; }
+  #pressEnter { position:absolute; right:36px; bottom:14px; font-size:15px; font-weight:bold; letter-spacing:2px; color:#ffd166; text-shadow:0 2px 8px #000; }
+  #saveFiles { position:absolute; right:34px; bottom:52px; padding:14px 16px; width:318px; box-sizing:border-box; }
+  #saveFiles h3 { margin:0 0 9px; font-size:15px; letter-spacing:2px; color:#fff; display:flex; justify-content:space-between; }
+  #saveFiles h3 span { color:#2ee6c8; font-size:11px; letter-spacing:1px; }
+  .sfSlot { display:flex; align-items:center; gap:11px; border:1px solid rgba(255,255,255,.22); border-radius:7px; padding:7px 10px; margin-top:7px; background:rgba(255,255,255,.05); }
+  .sfSlot .sfMeta { flex:1; min-width:0; }
+  .sfSlot .sfTitle { font-size:12.5px; font-weight:bold; letter-spacing:.5px; white-space:nowrap; overflow:hidden; }
+  .sfSlot .sfSub { font-size:11px; color:#9be7ff; margin-top:1px; }
+  .sfSlot .sfCash { font-size:11px; color:#8dff9a; margin-top:1px; }
+  .sfSlot .sfTag { font-size:9px; color:#cdbfd4; letter-spacing:1px; text-align:right; }
+  .sfSlot.empty { opacity:.55; }
+  .ring { flex:none; }
+  .ring .ringBg { fill:none; stroke:rgba(255,255,255,.16); }
+  .ring .ringFg { fill:none; stroke:#ffa53a; stroke-linecap:round; }
+  .ringText { font-size:12px; font-weight:bold; fill:#fff; text-anchor:middle; }
+  #dispatch { position:absolute; top:118px; left:16px; padding:9px 12px; min-width:262px; display:none; font-size:12px; }
   #dispatch b { color:#ff8f9d; letter-spacing:1px; font-size:12px; }
-  #dispatch .unit { display:flex; justify-content:space-between; gap:14px; margin-top:4px; }
+  #dispatch .unit { display:flex; align-items:center; gap:8px; margin-top:5px; }
+  #dispatch .unit span:first-child { flex:1; white-space:nowrap; }
   #dispatch .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
-  #weaponChip { display:inline-block; margin-top:6px; padding:4px 9px; border:1px solid #ffd166; border-radius:5px; background:rgba(194,67,122,.35); font-size:13px; font-weight:bold; letter-spacing:1px; }
-  #armourWrap { width:170px; height:7px; background:#1c2b3a; border:1px solid #fff3; margin-top:4px; margin-left:auto; }
-  #armourBar { height:100%; width:62%; background:linear-gradient(90deg,#53e9ff,#9be7ff); }
-  #speedo { position:absolute; left:16px; bottom:104px; padding:12px 16px; display:none; min-width:190px; }
-  #speedValue { font-size:46px; font-weight:900; line-height:1; color:#fff; }
+  #dispatch .dist { color:#9be7ff; font-size:11px; min-width:44px; text-align:right; }
+  #dispatch .st { padding:1px 6px; border-radius:3px; font-weight:bold; color:#1c1020; font-size:10px; letter-spacing:.5px; min-width:64px; text-align:center; }
+  #speedo { position:absolute; left:16px; bottom:104px; padding:12px 16px; display:none; min-width:196px; }
+  #speedValue { font-size:48px; font-weight:900; line-height:1; color:#fff; }
   #speedValue small { font-size:15px; color:#ffd166; letter-spacing:1px; }
-  #speedVehicle { font-size:13px; font-weight:bold; letter-spacing:1px; color:#9be7ff; margin-top:3px; }
+  #speedMeta { display:flex; justify-content:space-between; font-size:12.5px; font-weight:bold; letter-spacing:1px; color:#9be7ff; margin-top:4px; }
+  #speedGear { color:#ffd166; }
   #condWrap { width:100%; height:9px; background:#351923; border:1px solid #fff3; margin-top:7px; }
   #condBar { height:100%; width:100%; background:linear-gradient(90deg,#ff5964,#ffd166,#8dff9a); }
   #condLabel { font-size:11px; color:#e8dcc8; margin-top:3px; letter-spacing:1px; }
-  #mapScreen { position:fixed; inset:0; display:none; z-index:21; background:rgba(10,5,16,.88); padding:16px 22px; box-sizing:border-box; }
-  #mapInner { display:flex; gap:22px; height:100%; }
-  #mapLeft { flex:none; width:468px; } #mapLegend { width:468px; } #mapRight { flex:1; min-width:0; }
-  #mapLeft h2, #mapRight h2 { margin:0 0 8px; color:#ffd166; letter-spacing:2px; font-size:18px; white-space:nowrap; }
-  #cityMap { border:2px solid rgba(255,209,102,.85); border-radius:8px; background:#17263a; box-shadow:0 6px 26px rgba(0,0,0,.6); }
-  #mapLegend { font-size:12px; line-height:1.5; margin-top:8px; color:#e8dcc8; line-height:1.6; }
-  #mapRight { flex:1; overflow:hidden; }
-  .mapPanel { padding:8px 13px; margin-bottom:8px; font-size:12.5px; line-height:1.3; }
-  .mapPanel h3 { margin:0 0 4px; color:#9be7ff; letter-spacing:2px; font-size:14px; }
+  #mapScreen { position:fixed; inset:0; display:none; z-index:21; background:rgba(10,5,16,.9); padding:13px 20px; box-sizing:border-box; }
+  #mapTabs { display:flex; align-items:center; gap:7px; margin-bottom:9px; }
+  #mapTabs .brand { font-size:24px; font-weight:900; letter-spacing:1px; margin-right:14px; background:linear-gradient(180deg,#fff3b0,#ffd166 35%,#ff7b54 70%,#c2437a); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  #mapTabs .tab { padding:6px 15px; font-size:13.5px; font-weight:bold; letter-spacing:1.5px; background:rgba(255,255,255,.08); border-radius:5px; color:#e8dcc8; }
+  #mapTabs .tab.sel { background:#c2437a; color:#fff; }
+  #mapTabs .tab.teal { background:#0e7c86; color:#fff; }
+  #mapClock { margin-left:auto; font-size:13px; letter-spacing:1.5px; color:#9be7ff; }
+  #mapInner { display:flex; gap:16px; }
+  #mapLeft { position:relative; flex:none; width:600px; }
+  #cityMap { border:2px solid rgba(255,209,102,.85); border-radius:8px; background:#17263a; box-shadow:0 6px 26px rgba(0,0,0,.6); display:block; }
+  #mapLegend { position:absolute; left:10px; bottom:10px; background:rgba(14,8,20,.85); border:1px solid rgba(255,255,255,.25); border-radius:6px; padding:6px 10px; font-size:11px; line-height:1.65; color:#e8dcc8; }
+  #mapLegend i { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; }
+  #mapRight { flex:1; min-width:0; display:flex; flex-direction:column; gap:8px; }
+  #completeBlock { display:flex; align-items:center; gap:14px; padding:8px 13px; }
+  #completeBlock .cbText b { font-size:21px; color:#8dff9a; display:block; }
+  #completeBlock .cbText span { font-size:12px; letter-spacing:1px; color:#e8dcc8; }
+  #completePct { font-size:25px; font-weight:900; fill:#fff; text-anchor:middle; }
+  #completeWord { font-size:8.5px; letter-spacing:1.5px; fill:#ffd166; text-anchor:middle; }
+  .mapPanel { padding:8px 13px; font-size:12.5px; line-height:1.3; }
+  .mapPanel h3 { margin:0 0 4px; color:#9be7ff; letter-spacing:2px; font-size:13.5px; }
   .mapPanel .row { display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,.12); padding:1px 0; }
-  .mapPanel .cur { color:#ffd166; font-weight:bold; }
-  .mapPanel .done { color:#8dff9a; }
   .saveSlot { border:1px solid rgba(255,209,102,.5); border-radius:6px; padding:4px 9px; margin-top:4px; background:rgba(255,255,255,.05); font-size:11.5px; }
+  #storyJobs { margin-top:9px; }
+  #storyJobs h3 { margin:0 0 6px; color:#ffd166; letter-spacing:2px; font-size:14px; }
+  #storyList { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:6px; }
+  .job { display:flex; gap:8px; align-items:flex-start; background:rgba(20,10,24,.82); border:1px solid rgba(255,255,255,.18); border-left:4px solid #53e9ff; border-radius:6px; padding:6px 8px; min-height:47px; box-sizing:border-box; }
+  .job .jobNum { font-size:19px; font-weight:900; color:#ffd166; line-height:1; }
+  .job .jobBody { flex:1; min-width:0; }
+  .job .jobBody b { display:block; font-size:11px; letter-spacing:.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .job .jobBody small { display:block; font-size:9.5px; color:#9be7ff; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .job .jobStatus { font-size:9.5px; font-weight:bold; color:#53e9ff; letter-spacing:.5px; text-align:right; }
+  .job.done { border-left-color:#2ee6c8; } .job.done .jobStatus { color:#2ee6c8; }
+  .job.cur { border-left-color:#ffd166; background:rgba(194,67,122,.3); } .job.cur .jobStatus { color:#ffd166; }
+  #mapFooter { margin-top:7px; font-size:10.5px; letter-spacing:1.5px; color:#8d7f96; }
   #damageVignette { position:fixed; inset:0; pointer-events:none; box-shadow:inset 0 0 90px rgba(255,0,40,0); z-index:9; }
   #status { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
   @media (max-width:760px) { #startCard h1 { font-size:38px; } .controls { grid-template-columns:1fr; } #minimap { width:148px; height:148px; } }
@@ -99,7 +161,7 @@
       <span><b>Shift</b> — sprint</span><span><b>F</b> — enter / steal / exit car</span>
       <span><b>Click</b> — shoot pistol</span><span><b>R</b> — reload</span>
       <span><b>E</b> — talk / start fare</span><span><b>Esc / P</b> — pause &amp; save</span>
-      <span><b>Gold ring</b> — Marina Loop street race</span><span><b>8 story missions</b> — one long Palmira night</span>
+      <span><b>Gold ring</b> — Marina Loop street race</span><span><b>10 story missions</b> — one long Palmira night</span>
     </div>
     <button id="newGameButton">NEW GAME</button>
     <button id="continueButton" class="secondary">CONTINUE</button>
@@ -109,34 +171,58 @@
 
 <section id="titleScreen" aria-label="Palmira Heat title screen">
   <div id="titleTop"><h1 class="bigTitle">PALMIRA<br>HEAT</h1><div class="tagline">ONE COURIER · ONE CITY · EVERY COP IN PALMIRA</div></div>
-  <div id="titleMenu" class="panel"><div class="sel">▶ CONTINUE</div><div>NEW GAME</div><div>CONTROLS</div><div class="dim">MARINA LOOP — BEST 47.3s</div></div>
-  <div id="saveCard" class="panel"><b>SAVE — RICO MARÍN</b>
-    <div class="row"><span>STORY</span><span id="saveStory">8 / 10 — LAST FERRY OUT</span></div>
-    <div class="row"><span>CASH</span><span id="saveCash">$120</span></div>
-    <div class="row"><span>LAST LOCATION</span><span>MARINA &amp; PIER</span></div>
-    <div class="row"><span>TAXI FARES</span><span>3 · CARS TAKEN 6</span></div>
-    <div class="row"><span>NEXT</span><span>THE LONG WAY HOME</span></div>
+  <div id="titleMenu" class="panel"><div class="sel">▶ CONTINUE</div><div>NEW GAME</div><div>LOAD GAME</div><div>SETTINGS</div><div>CONTROLS</div><div class="dim">MARINA LOOP — BEST 47.3s</div></div>
+  <div id="saveFiles" class="panel"><h3>SAVE FILES <span>3 SLOTS</span></h3>
+    <div class="sfSlot">
+      <svg class="ring" width="42" height="42" viewBox="0 0 42 42"><circle class="ringBg" cx="21" cy="21" r="17" stroke-width="5"/><circle class="ringFg" id="sf1Ring" cx="21" cy="21" r="17" stroke-width="5" stroke-dasharray="106.8" stroke-dashoffset="21" transform="rotate(-90 21 21)"/><text class="ringText" x="21" y="25" id="sf1Pct">80%</text></svg>
+      <div class="sfMeta"><div class="sfTitle" id="sf1Title">8 · LAST FERRY OUT</div><div class="sfSub">Marina &amp; Pier</div><div class="sfCash"><span id="saveCash">$120</span> · 2h 14m</div></div>
+      <div class="sfTag">SLOT 1<br>AUTO</div>
+    </div>
+    <div class="sfSlot">
+      <svg class="ring" width="42" height="42" viewBox="0 0 42 42"><circle class="ringBg" cx="21" cy="21" r="17" stroke-width="5"/><circle class="ringFg" cx="21" cy="21" r="17" stroke-width="5" stroke-dasharray="106.8" stroke-dashoffset="65" transform="rotate(-90 21 21)"/><text class="ringText" x="21" y="25">39%</text></svg>
+      <div class="sfMeta"><div class="sfTitle">4 · NEON PIER SHOWDOWN</div><div class="sfSub">Neon Pier</div><div class="sfCash">$940 · 1h 52m</div></div>
+      <div class="sfTag">SLOT 2</div>
+    </div>
+    <div class="sfSlot empty">
+      <div class="sfMeta"><div class="sfTitle">EMPTY SLOT</div><div class="sfSub">Start a new Palmira night</div></div>
+      <div class="sfTag">SLOT 3</div>
+    </div>
   </div>
+  <div id="titleHint">WASD DRIVE / WALK · F ENTER OR STEAL CAR · MOUSE AIM &amp; SHOOT · ESC PAUSE &amp; MAP</div>
+  <div id="pressEnter">PRESS ENTER ▸</div>
 </section>
 
 <section id="mapScreen" aria-label="Palmira city map and career">
+  <div id="mapTabs"><span class="brand">PALMIRA HEAT</span><span class="tab teal">MAP</span><span class="tab">STORY</span><span class="tab">STATS</span><span class="tab">GARAGE</span><span class="tab">SETTINGS</span><span class="tab sel">SAVE</span><span id="mapClock">FRI 17:42 · MARINA &amp; PIER</span></div>
   <div id="mapInner">
-    <div id="mapLeft"><h2>PALMIRA — CITY MAP</h2><canvas id="cityMap" width="468" height="452"></canvas>
-      <div id="mapLegend">◆ <span style="color:#ffd166">GOLD — story objective</span> · ◆ <span style="color:#53e9ff">CYAN — Marina Loop race</span> · ▲ YOU · ● POLICE · 3 DISTRICTS · 7×7 ROAD GRID · NEON PIER &amp; FERRY (SOUTH)</div>
+    <div id="mapLeft"><canvas id="cityMap" width="600" height="408"></canvas>
+      <div id="mapLegend"><i style="background:#ffd166"></i>Story job&nbsp; <i style="background:#53e9ff"></i>Race&nbsp; <i style="background:#ff4455"></i>Police&nbsp; <i style="background:#ffffff"></i>You<br>3 DISTRICTS · 7×7 GRID · NEON PIER ⚓ FERRY</div>
     </div>
-    <div id="mapRight"><h2>CAREER — RICO MARÍN</h2>
-      <div class="mapPanel panel"><h3>STORY — 10 MISSIONS</h3><div id="storyList"></div></div>
+    <div id="mapRight">
+      <div id="completeBlock" class="panel">
+        <svg class="ring" width="86" height="86" viewBox="0 0 86 86"><circle class="ringBg" cx="43" cy="43" r="36" stroke-width="9"/><circle class="ringFg" id="completeRingFg" cx="43" cy="43" r="36" stroke-width="9" stroke-dasharray="226.2" stroke-dashoffset="23" transform="rotate(-90 43 43)"/><text id="completePct" x="43" y="50">90%</text><text id="completeWord" x="43" y="63">COMPLETE</text></svg>
+        <div class="cbText"><b id="mapCash">$1,240</b><span id="mapRank">RANK 5 · KINGPIN</span><br><span>Rico Marín — Palmira career</span></div>
+      </div>
       <div class="mapPanel panel"><h3>CAREER STATS</h3><div id="careerStats"></div></div>
       <div class="mapPanel panel"><h3>SAVE SLOTS</h3><div id="saveSlots"></div></div>
     </div>
   </div>
+  <div id="storyJobs"><h3>STORY JOBS</h3><div id="storyList"></div></div>
+  <div id="mapFooter">ESC RESUME · TAB NEXT TAB · CLICK MAP ICONS FOR DETAILS</div>
 </section>
 
 <div id="hud" aria-hidden="true">
   <div id="topLeft" class="panel"><div id="gameTitle">PALMIRA HEAT</div><div id="objective">Explore Palmira</div></div>
   <div id="dispatch" class="panel"><b>📻 PALMIRA PD — DISPATCH</b><div id="dispatchRows"></div></div>
-  <div id="topRight" class="panel"><div id="wantedStars"></div><div id="cash">$0</div><div id="weaponLine">PISTOL 12 / 12</div><div><span id="weaponChip">[1] PISTOL · 12/72</span></div><div id="healthWrap"><div id="healthBar"></div></div><div id="armourWrap"><div id="armourBar"></div></div></div>
-  <div id="speedo" class="panel"><div id="speedValue">0 <small>KM/H</small></div><div id="speedVehicle">VELA GT COUPE</div><div id="condWrap"><div id="condBar"></div></div><div id="condLabel">CONDITION 100%</div></div>
+  <div id="topRight" class="panel"><div id="wantedStars"></div><div id="cash">$0</div><div id="weaponLine">PISTOL 12 / 12</div>
+    <div id="rankBlock"><div id="rankLine"><span id="rankChip">RANK 1</span><span id="rankName">RUNNER</span></div><div id="rpWrap"><div id="rpBar"></div></div><div id="rpText">0 / 600 RP</div></div>
+    <div id="weaponSlots"></div>
+    <div class="barRow"><span class="barLabel">HEALTH</span><div id="healthWrap"><div id="healthBar"></div></div><span class="barValue" id="healthValue">100</span></div>
+    <div class="barRow"><span class="barLabel">ARMOUR</span><div id="armourWrap"><div id="armourBar"></div></div><span class="barValue" id="armourValue">62</span></div>
+  </div>
+  <div id="crewCards"></div>
+  <div id="radioLine" class="panel"></div>
+  <div id="speedo" class="panel"><div id="speedValue">0 <small>KM/H</small></div><div id="speedMeta"><span id="speedVehicle">VELA GT COUPE</span><span id="speedGear">GEAR 1</span></div><div id="condWrap"><div id="condBar"></div></div><div id="condLabel">CONDITION 100%</div></div>
   <canvas id="minimap" width="220" height="220"></canvas>
   <div id="districtBanner" class="panel"></div>
   <div id="prompt" class="panel"></div>

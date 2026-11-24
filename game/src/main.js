@@ -294,6 +294,7 @@ function animate(now) {
       player, vehicleName: player.vehicle ? player.vehicle.type.kind.toUpperCase() : '', ammo: combat.ammoInMagazine, reserveAmmo: combat.reserveAmmo,
       vehicles, police, heli: airUnit, enemies: missions.enemies, objectiveTarget: races.active ? races.currentTarget() : (missions.taxi?.target || missions.currentStep()?.target),
       vehicle: player.vehicle, wantedStars: wanted.stars, roadblocksActive: roadblocks.blocks.some((b) => b.active),
+      elapsed: game.elapsed, missionIndex: missions.missionIndex,
     });
     audio.updateMusic(delta, true);
     game.shake = Math.max(0, game.shake - delta * 1.7);

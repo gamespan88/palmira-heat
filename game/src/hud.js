@@ -1,6 +1,13 @@
 // DOM HUD and the circular minimap: health, cash, stars, objective, prompts, dialogue and radar blips.
-import { WORLD } from './config.js';
+import { CREW, RADIO, RANK_NAMES, WEAPONS, WORLD } from './config.js';
 import { formatCash } from './utils.js';
+
+const DISPATCH_STATUSES = [
+  { label: 'PURSUIT', color: '#ffd166' },
+  { label: 'RAMMING', color: '#ff8c42' },
+  { label: 'BOXING IN', color: '#ff5964' },
+  { label: 'FLANKING', color: '#f78fb3' },
+];
 
 export function createHud() {
   const elements = {
@@ -12,10 +19,33 @@ export function createHud() {
     status: document.getElementById('status'), vignette: document.getElementById('damageVignette'),
     district: document.getElementById('districtBanner'),
     dispatch: document.getElementById('dispatch'), dispatchRows: document.getElementById('dispatchRows'),
-    weaponChip: document.getElementById('weaponChip'), armour: document.getElementById('armourBar'),
+    armour: document.getElementById('armourBar'),
     speedo: document.getElementById('speedo'), speedValue: document.getElementById('speedValue'),
-    speedVehicle: document.getElementById('speedVehicle'), condBar: document.getElementById('condBar'), condLabel: document.getElementById('condLabel'),
+    speedVehicle: document.getElementById('speedVehicle'), speedGear: document.getElementById('speedGear'),
+    condBar: document.getElementById('condBar'), condLabel: document.getElementById('condLabel'),
+    rankName: document.getElementById('rankName'), rankChip: document.getElementById('rankChip'),
+    rpBar: document.getElementById('rpBar'), rpText: document.getElementById('rpText'),
+    weaponSlots: document.getElementById('weaponSlots'), crewCards: document.getElementById('crewCards'),
+    radio: document.getElementById('radioLine'),
+    healthValue: document.getElementById('healthValue'), armourValue: document.getElementById('armourValue'),
   };
+  // Weapon slot row and crew ability cards are built once; update() only restyles them.
+  const slotEls = [];
+  if (elements.weaponSlots) {
+    WEAPONS.forEach((weapon, index) => {
+      const slot = document.createElement('div'); slot.className = 'slot';
+      slot.innerHTML = `<span class="slotKey">${index + 1}</span><span class="slotName">${weapon.name}</span><span class="slotAmmo">${weapon.ammo || ''}</span>`;
+      elements.weaponSlots.append(slot); slotEls.push({ root: slot, ammo: slot.querySelector('.slotAmmo') });
+    });
+  }
+  const crewEls = [];
+  if (elements.crewCards) {
+    CREW.forEach((member) => {
+      const card = document.createElement('div'); card.className = 'crewCard'; card.style.borderColor = member.color;
+      card.innerHTML = `<span class="crewFace" style="background:${member.color}"></span><span class="crewText"><b>${member.name}</b><small>${member.member}</small></span><span class="crewCd"></span>`;
+      elements.crewCards.append(card); crewEls.push({ cd: card.querySelector('.crewCd'), root: card });
+    });
+  }
   const minimap = document.getElementById('minimap'); const pen = minimap.getContext('2d');
   let subtitleUntil = 0; let messageUntil = 0; let districtUntil = 0;
   function worldToMap(x, z) { const scale = minimap.width / 2 / 205; return [minimap.width / 2 + x * scale, minimap.height / 2 + (z - 18) * scale]; }
@@ -66,18 +96,56 @@ export function createHud() {
       elements.wanted.textContent = state.wantedText;
       elements.cash.textContent = formatCash(state.cash);
       elements.weapon.textContent = state.player.mode === 'car' ? state.vehicleName : `PISTOL ${state.ammo} / ${state.reserveAmmo}`;
-      if (elements.weaponChip) elements.weaponChip.textContent = `[1] PISTOL · ${state.ammo}/${state.reserveAmmo}`;
-      if (elements.armour) elements.armour.style.width = `${Math.max(0, Math.min(100, state.player.health * 0.62))}%`;
+      const armourPct = Math.max(0, Math.min(100, Math.round(state.player.health * 0.62)));
+      if (elements.armour) elements.armour.style.width = `${armourPct}%`;
+      if (elements.healthValue) elements.healthValue.textContent = Math.max(0, Math.round(state.player.health));
+      if (elements.armourValue) elements.armourValue.textContent = armourPct;
+      // Rank + RP: the street remembers every job Rico finishes.
+      if (elements.rankName) {
+        const rankIndex = Math.min(RANK_NAMES.length - 1, Math.floor((state.missionIndex || 0) / 2) + (state.player.mode === 'car' ? 1 : 0));
+        elements.rankName.textContent = RANK_NAMES[rankIndex];
+        if (elements.rankChip) elements.rankChip.textContent = `RANK ${rankIndex + 1}`;
+        const rp = Math.abs(state.cash) % 600;
+        if (elements.rpBar) elements.rpBar.style.width = `${Math.round((rp / 600) * 100)}%`;
+        if (elements.rpText) elements.rpText.textContent = `${rp} / 600 RP`;
+      }
+      // Weapon slots: drive-by SMG is the active slot in a car, the pistol on foot.
+      if (slotEls.length) {
+        const activeSlot = state.player.mode === 'car' ? 2 : 1;
+        slotEls.forEach((slot, index) => {
+          slot.root.classList.toggle('active', index === activeSlot);
+          if (index === 1) slot.ammo.textContent = `${state.ammo}/${state.reserveAmmo}`;
+        });
+      }
+      // Crew ability cards with cooldowns ticking off Palmira time.
+      if (crewEls.length) {
+        const elapsed = state.elapsed || 0;
+        crewEls.forEach((card, index) => {
+          const ability = CREW[index];
+          const cycle = ability.cooldown + 8;
+          const remaining = ability.cooldown - Math.floor(elapsed * 2 + index * 7) % cycle;
+          if (remaining <= 0) { card.cd.textContent = 'READY'; card.root.classList.add('ready'); }
+          else { card.cd.textContent = `${remaining}s`; card.root.classList.remove('ready'); }
+        });
+      }
+      if (elements.radio) {
+        if (state.player.mode === 'car') { elements.radio.style.display = 'block'; elements.radio.textContent = `♪ ${RADIO.station} — ${RADIO.track}`; }
+        else elements.radio.style.display = 'none';
+      }
       const stars = state.wantedStars ?? 0;
       if (elements.dispatch) {
         if (stars >= 3) {
           elements.dispatch.style.display = 'block';
           const rows = [];
           const activePolice = (state.police || []).filter((c) => c.active);
-          activePolice.slice(0, 3).forEach((c, i) => rows.push(`<div class="unit"><span><span class="dot" style="background:${i % 2 ? '#4488ff' : '#ff4455'}"></span>UNIT ${i + 1} · INTERCEPTOR</span><span>PURSUIT</span></div>`));
-          if (state.roadblocksActive) rows.push('<div class="unit"><span><span class="dot" style="background:#ffb02e"></span>UNIT RB · BARRICADE</span><span>ROADBLOCK</span></div>');
-          if (state.heli && state.heli.active) rows.push('<div class="unit"><span><span class="dot" style="background:#e8e6ff"></span>AIR ONE · HELICOPTER</span><span>SEARCHLIGHT</span></div>');
-          if (!rows.length) rows.push('<div class="unit"><span>ALL UNITS</span><span>RESPONDING</span></div>');
+          activePolice.slice(0, 4).forEach((c, i) => {
+            const status = DISPATCH_STATUSES[i % DISPATCH_STATUSES.length];
+            const distance = Math.round(Math.hypot(c.position.x - state.player.position.x, c.position.z - state.player.position.z));
+            rows.push(`<div class="unit"><span><span class="dot" style="background:${i % 2 ? '#4488ff' : '#ff4455'}"></span>UNIT ${i + 1} · INTERCEPTOR</span><span class="dist">${distance} m</span><span class="st" style="background:${status.color}">${status.label}</span></div>`);
+          });
+          if (state.roadblocksActive) rows.push('<div class="unit"><span><span class="dot" style="background:#ffb02e"></span>UNIT RB · BARRICADE</span><span class="dist">AHEAD</span><span class="st" style="background:#ff5964">ROADBLOCK</span></div>');
+          if (state.heli && state.heli.active) rows.push('<div class="unit"><span><span class="dot" style="background:#e8e6ff"></span>AIR ONE · HELICOPTER</span><span class="dist">OVERHEAD</span><span class="st" style="background:#e8e6ff">SPOTLIGHT</span></div>');
+          if (!rows.length) rows.push('<div class="unit"><span>ALL UNITS</span><span class="st" style="background:#ffd166">RESPONDING</span></div>');
           elements.dispatchRows.innerHTML = rows.join('');
         } else elements.dispatch.style.display = 'none';
       }
@@ -87,6 +155,7 @@ export function createHud() {
           const kmh = Math.round(Math.abs(state.vehicle.speed || 0) * 3.6);
           elements.speedValue.innerHTML = `${kmh} <small>KM/H</small>`;
           elements.speedVehicle.textContent = state.vehicleName || state.vehicle.type.kind.toUpperCase();
+          if (elements.speedGear) elements.speedGear.textContent = `GEAR ${Math.min(6, 1 + Math.floor(Math.abs(state.vehicle.speed || 0) / 6))}`;
           const cond = Math.max(0, Math.round(state.vehicle.health));
           elements.condBar.style.width = `${cond}%`;
           elements.condLabel.textContent = `CONDITION ${cond}%${cond < 40 ? ' · SMOKING' : ''}`;
